@@ -1,0 +1,22 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body,
+#app,
+:root {
+    height: 100%;
+}
+.global-shadow {
+    box-shadow: 0 0 24px #E8EBEF;
+}
+.radius-sm {
+    border-radius: 8px;
+}
+.radius-md {
+    border-radius: 12px;
+}
+.radius-xl {
+    border-radius: 24px;
+}
