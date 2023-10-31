@@ -77,7 +77,7 @@ func (u *UserRepositoryImpl) PageUser(name string, page, size int) (*models.Page
 		Size:      size,
 		Total:     total,
 		TotalPage: maxPage,
-		List:      users,
+		List:      &users,
 	}, nil
 }
 

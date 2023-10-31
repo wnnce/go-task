@@ -6,7 +6,6 @@ import (
 	"go-task-server/internal/models"
 	"go-task-server/internal/utils"
 	"log"
-	"strconv"
 )
 
 type UserHandler struct {
@@ -45,16 +44,11 @@ func (u *UserHandler) CreateUser(c *fiber.Ctx) error {
 
 func (u *UserHandler) ListUser(c *fiber.Ctx) error {
 	username := c.Query("name")
-	pageString := c.Query("page", "1")
-	sizeString := c.Query("size", "5")
-	page, err := strconv.Atoi(pageString)
-	if err != nil {
-		return utils.Fail(c, fmt.Errorf("请求参数错误"))
-	}
-	size, err := strconv.Atoi(sizeString)
-	if err != nil {
-		return utils.Fail(c, fmt.Errorf("请求参数错误"))
-	}
+	page := c.QueryInt("page", 1)
+	size := c.QueryInt("size", 2)
 	pageResult, err := u.userService.ListUser(username, page, size)
+	if err != nil {
+		return utils.Fail(c, err)
+	}
 	return utils.Ok(c, pageResult)
 }

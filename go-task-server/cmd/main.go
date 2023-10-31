@@ -4,8 +4,11 @@ import (
 	"github.com/gofiber/fiber/v2"
 	_ "github.com/lib/pq"
 	"go-task-server/internal/middlewares"
+	"go-task-server/internal/modules/record"
+	"go-task-server/internal/modules/task"
 	"go-task-server/internal/modules/user"
 	"log"
+	"sync"
 	"xorm.io/xorm"
 )
 
@@ -17,6 +20,10 @@ func main() {
 	}
 	app := fiber.New()
 	app.Use(middlewares.AuthMiddleware)
-	user.InitUserModule(app, engine)
+	var wg sync.WaitGroup
+	user.InitUserModule(app, engine, &wg)
+	task.InitTaskModule(app, engine, &wg)
+	record.InitRecordModule(app, engine, &wg)
+	wg.Wait()
 	log.Fatal(app.Listen(":5400"))
 }

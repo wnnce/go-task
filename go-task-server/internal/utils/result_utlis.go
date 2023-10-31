@@ -43,6 +43,7 @@ func Fail(c *fiber.Ctx, err error) error {
 		code = 400
 		message = err.Error()
 	}
+	c.Status(code)
 	return c.JSON(&Result{
 		Code:      code,
 		Message:   message,
