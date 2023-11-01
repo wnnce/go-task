@@ -107,15 +107,19 @@ const handlerDelete = async (userId: number) => {
     }
 }
 
-const handlerPageChange = (page: number) => {
+const handlerPageChange = async (page: number) => {
+    tableLoading.value = true;
     queryData.page = page;
-    getUserPage()
+    await getUserPage()
+    tableLoading.value = false;
 }
 
-const handlerSizeChange = (size: number) => {
+const handlerSizeChange = async (size: number) => {
+    tableLoading.value = true;
     queryData.size = size;
     queryData.page = 1;
-    getUserPage();
+    await getUserPage();
+    tableLoading.value = false;
 }
 onMounted(() => {
     getUserPage();

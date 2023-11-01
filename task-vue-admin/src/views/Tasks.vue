@@ -1,25 +1,35 @@
 <script setup lang="ts">
-import { IconSearch, IconDelete, IconPlayArrow, IconEdit, IconInfo } from '@arco-design/web-vue/es/icon';
+import { IconSearch, IconDelete, IconPlayArrow, IconEdit, IconInfo, IconCheck } from '@arco-design/web-vue/es/icon';
 import TableOption from '@/components/TableOption.vue';
 import type {TableColumnData} from '@arco-design/web-vue';
-import {reactive, ref} from 'vue';
-
-interface Task {
-    id?: number,
-    name: string,
-    remark?: string
-    taskType: 0 | 1 | undefined,
-    handlerType: 0 | 1 | undefined,
-    handlerName: string,
-    params?: string,
-    createTime?: string,
-    updateTime?: string,
-    status?: 0 | 1
-}
+import {onMounted, reactive, ref} from 'vue';
+import type {Page, Task} from '@/server/api';
+import {formatDateTime} from '@/assets/script/utils';
+import {TaskApi} from '@/server/api';
+import {Msg, Not} from '@/assets/script/common';
 
 export interface Description {
     label: string,
     value: any
+}
+
+export interface TaskQueryData {
+    page: number,
+    size: number,
+    name: string,
+    handlerType?: number,
+    taskType?:number,
+    rangeTime: string[]
+}
+
+export interface OptionalTask {
+    id: number | undefined,
+    name: string,
+    remark: string,
+    taskType: number | undefined,
+    handlerType: number | undefined,
+    handlerName: string,
+    params: string,
 }
 
 const taskColumns: TableColumnData[] = [
@@ -45,7 +55,7 @@ const taskColumns: TableColumnData[] = [
     },
     {
         title: '创建时间',
-        dataIndex: 'createTime',
+        slotName: 'createTime',
         width: 200,
         align: 'center'
     },
@@ -62,34 +72,41 @@ const taskColumns: TableColumnData[] = [
         align: 'center'
     }
 ]
-const taskData: Task[] = [
-    {
-        id: 1,
-        name: '测试任务',
-        remark: '备注，备注，备注',
-        taskType: 0,
-        handlerType: 0,
-        handlerName: 'demoExecute',
-        params: '{"name": "hello"}',
-        createTime: '2011-11-11 10:10:10',
-        updateTime: '2011-11-11 11:11:11',
-        status: 0
-    }
-]
-const editTask = reactive<Task>({
+const taskRef = ref();
+const taskPage = ref<Page<Task>>()
+const editTask = reactive<OptionalTask>({
     id: undefined,
     name: '',
     remark: '',
     taskType: undefined,
     handlerType: undefined,
+    handlerName: '',
     params: '',
-    handlerName: ''
 })
-const taskRef = ref();
 const submitLoading = ref<boolean>(false)
 const taskModelVisible = ref<boolean>(false);
 const infoModelVisible = ref<boolean>(false);
-const taskInfoData = ref();
+const tableLoading = ref<boolean>(false);
+const searchButtonLoading = ref<boolean>(false);
+const taskInfoData = ref<Description[]>();
+
+const queryData = reactive<TaskQueryData>({
+    page: 1,
+    size: 10,
+    name: '',
+    handlerType: undefined,
+    taskType: undefined,
+    rangeTime: []
+})
+
+const getTaskPage = async () => {
+    tableLoading.value = true;
+    const result = await TaskApi.getTaskList(queryData);
+    tableLoading.value = false;
+    if (result.code === 200) {
+        taskPage.value = result.data;
+    }
+}
 
 const taskToDescriptions = (task: Task): Description[] => {
     return [
@@ -119,11 +136,11 @@ const taskToDescriptions = (task: Task): Description[] => {
         },
         {
             label: '创建时间',
-            value: task.createTime
+            value: formatDateTime(task.createTime)
         },
         {
             label: '最后更新时间',
-            value: task.updateTime
+            value: formatDateTime(task.updateTime)
         },
         {
             label: '状态',
@@ -132,26 +149,86 @@ const taskToDescriptions = (task: Task): Description[] => {
     ]
 }
 
-const handlerSubmit = () => {
+const handlerSubmit = async () => {
     submitLoading.value = true;
-    setTimeout(() => {
-        console.log(editTask);
-        submitLoading.value = false;
+    let result;
+    if (editTask.id) {
+        result = await TaskApi.updateTask(editTask);
+    }else {
+        result = await TaskApi.saveTask(editTask);
+    }
+    console.log(result);
+    submitLoading.value = false;
+    if (result.code === 200) {
+        const message = editTask.id ? "修改成功" : "添加成功";
+        Not.success(message)
         taskModelVisible.value = false;
-        taskRef.value.resetFields();
-    }, 500)
+    }
 }
 
-const handlerViewInfo = (taskId: number) => {
-    console.log(taskId);
-    taskInfoData.value = taskToDescriptions(taskData[0]);
+const handlerViewInfo = async (taskId: number) => {
     infoModelVisible.value = true;
+    const result = await TaskApi.queryTaskInfo(taskId);
+    if (result.code === 200) {
+        taskInfoData.value = taskToDescriptions(result.data)
+    }
+}
+const handlerEditTask = async (taskId: number) => {
+    const result = await TaskApi.queryTaskInfo(taskId);
+    if (result.code !== 200) {
+        return;
+    }
+    taskModelVisible.value = true;
+    Object.assign(editTask, result.data)
 }
 
+const handlerDeleteTask = async (taskId: number) => {
+    const message = Msg.loading("任务删除中");
+    const result = await TaskApi.deleteTask(taskId);
+    if (result.code === 200) {
+        message.close();
+        Not.success("删除成功")
+        await getTaskPage()
+    }
+}
+
+const handlerPageChange = async (page: number) => {
+    tableLoading.value = true;
+    queryData.page = page;
+    await getTaskPage();
+    tableLoading.value = false;
+}
+
+const handlerSizeChange = async (size: number) => {
+    tableLoading.value = true;
+    queryData.size = size;
+    queryData.page = 1;
+    await getTaskPage();
+    tableLoading.value = false;
+}
+const handlerSearch = async () => {
+    searchButtonLoading.value = true;
+    await getTaskPage();
+    searchButtonLoading.value = false;
+}
+
+const resetQueryData = () => {
+    queryData.name = '';
+    queryData.taskType = undefined;
+    queryData.handlerType = undefined;
+    queryData.rangeTime = [];
+}
+
+onMounted(() => {
+    getTaskPage();
+})
 </script>
 
 <template>
-    <a-modal title="添加任务" title-align="center" v-model:visible="taskModelVisible" :footer="false">
+    <a-modal :title="editTask.id ? '修改任务' : '添加任务'" title-align="center" v-model:visible="taskModelVisible"
+             :footer="false"
+             @close="taskRef.resetFields()"
+    >
         <a-form ref="taskRef" :model="editTask" layout="vertical" @submit-success="handlerSubmit">
             <a-form-item field="name" label="任务名称" :rules="[{required: true, message: '任务名称不能为空'}]">
                 <a-input v-model="editTask.name" placeholder="请输入任务名称"/>
@@ -162,14 +239,14 @@ const handlerViewInfo = (taskId: number) => {
             <div class="flex">
                 <a-form-item field="taskType" label="任务类型" :rules="[{required: true, message: '任务类型不能为空'}]">
                     <a-select v-model="editTask.taskType" placeholder="任务类型" size="large" style="width: 235px">
-                        <a-option value="0">单机执行</a-option>
-                        <a-option value="1">广播执行</a-option>
+                        <a-option :value="0">单机执行</a-option>
+                        <a-option :value="1">广播执行</a-option>
                     </a-select>
                 </a-form-item>
                 <a-form-item field="handlerType" label="执行器类型" :rules="[{required: true, message: '任务执行器类型不能为空'}]">
                     <a-select v-model="editTask.handlerType" placeholder="执行器类型" size="large" style="width: 235px">
-                        <a-option value="0">SpringBean</a-option>
-                        <a-option value="1">Task注解</a-option>
+                        <a-option :value="0">SpringBean</a-option>
+                        <a-option :value="1">Task注解</a-option>
                     </a-select>
                 </a-form-item>
             </div>
@@ -180,28 +257,47 @@ const handlerViewInfo = (taskId: number) => {
                 <a-textarea v-model="editTask.params" placeholder="任务参数" />
             </a-form-item>
             <div class="flex justify-between">
-                <a-button class="w-2/5" type="primary" html-type="submit" size="large" :loading="submitLoading">确定</a-button>
-                <a-button class="w-2/5" type="outline" @click="taskRef.resetFields()" size="large">清空</a-button>
+                <a-button class="w-2/5" type="primary" html-type="submit" size="large" :loading="submitLoading">
+                    <template #default>
+                        确定
+                    </template>
+                    <template #icon>
+                        <icon-check />
+                    </template>
+                </a-button>
+                <a-button class="w-2/5" type="outline" @click="taskRef.resetFields()" size="large">
+                    <template #default>
+                        清空
+                    </template>
+                    <template #icon>
+                        <icon-refresh />
+                    </template>
+                </a-button>
             </div>
         </a-form>
     </a-modal>
     <a-modal v-model:visible="infoModelVisible" :footer="false" title="任务详情" title-align="start" width="600px">
-        <a-descriptions :data="taskInfoData" size="large" :column="1"/>
+        <a-descriptions v-if="taskInfoData" :data="taskInfoData" size="large" :column="1"/>
+        <div v-else class="w-full text-center">
+            <a-spin tip="加载中"/>
+        </div>
     </a-modal>
     <div>
         <div class="mb-8">
             <a-space>
-                <a-input placeholder="输入任务名称搜索" size="large"/>
-                <a-select placeholder="执行器类型" size="large" style="width: 120px">
-                    <a-option value="0">Bean</a-option>
-                    <a-option value="1">注解</a-option>
+                <a-input v-model="queryData.name" placeholder="输入任务名称搜索" size="large"/>
+                <a-select v-model="queryData.handlerType" placeholder="执行器类型" size="large" style="width: 120px">
+                    <a-option :value="0">全部</a-option>
+                    <a-option :value="1">Bean</a-option>
+                    <a-option :value="2">注解</a-option>
                 </a-select>
-                <a-select placeholder="任务类型" size="large" style="width: 120px">
-                    <a-option value="0">单机执行</a-option>
-                    <a-option value="1">广播执行</a-option>
+                <a-select v-model="queryData.taskType" placeholder="任务类型" size="large" style="width: 120px">
+                    <a-option :value="0">全部</a-option>
+                    <a-option :value="1">单机执行</a-option>
+                    <a-option :value="2">广播执行</a-option>
                 </a-select>
-                <a-range-picker style="width: 254px;" size="large"/>
-                <a-button type="primary" size="large">
+                <a-range-picker v-model="queryData.rangeTime" style="width: 254px;" size="large"/>
+                <a-button type="primary" size="large" @click="handlerSearch" :loading="searchButtonLoading">
                     <template #default>
                         搜索
                     </template>
@@ -209,7 +305,7 @@ const handlerViewInfo = (taskId: number) => {
                         <icon-search />
                     </template>
                 </a-button>
-                <a-button size="large">
+                <a-button size="large" @click="resetQueryData">
                     <template #default>
                         清空
                     </template>
@@ -220,18 +316,37 @@ const handlerViewInfo = (taskId: number) => {
             </a-space>
         </div>
         <div>
-            <table-option button-text="添加任务" @add="taskModelVisible = true"/>
+            <table-option button-text="添加任务" @add="taskModelVisible = true" @refresh="getTaskPage"/>
         </div>
-        <div>
-            <a-table :columns="taskColumns" :data="taskData">
+        <div v-if="taskPage">
+            <a-table :columns="taskColumns" :data="taskPage.list" :loading="tableLoading"
+                     :pagination="{total: taskPage.total, pageSize: taskPage.size, current: taskPage.page, pageSizeOptions: [10, 20, 40], defaultPageSize: 10, showPageSize: true}"
+                     @page-change="handlerPageChange"
+                     @page-size-change="handlerSizeChange"
+            >
                 <template #task-type="{ record }">
                     {{record.taskType === 0 ? '单机执行' : '广播执行'}}
                 </template>
                 <template #handler-type="{ record }">
                     {{record.handlerType === 0 ? 'SpringBean' : '注解'}}
                 </template>
+                <template #createTime="{ record }">
+                    {{formatDateTime(record.createTime)}}
+                </template>
                 <template #status="{ record }">
-                    <a-switch :model-value="record.status === 0" />
+                    <a-switch v-model="record.status" :checked-value="0" :unchecked-value="1" checked-color="#2F80ED"
+                              unchecked-color="#D9D9D9"
+                              :before-change="async (value) => {
+                                  if (typeof value === 'string') {
+                                      value = parseInt(value);
+                                  }
+                                  if (typeof value === 'boolean') {
+                                      value = value ? 0 : 1;
+                                  }
+                                  const result = await TaskApi.updateTaskStatus(record.id, value);
+                                  return result.code === 200;
+                              }"
+                    />
                 </template>
                 <template #optional="{ record }">
                     <a-space>
@@ -245,19 +360,25 @@ const handlerViewInfo = (taskId: number) => {
                                 <icon-info/>
                             </template>
                         </a-button>
-                        <a-button type="outline" status="warning" shape="circle">
+                        <a-button type="outline" status="warning" shape="circle" @click="handlerEditTask(record.id)">
                             <template #icon>
                                 <icon-edit/>
                             </template>
                         </a-button>
                         <a-button type="outline" status="danger" shape="circle">
                             <template #icon>
-                                <icon-delete/>
+                                <a-popconfirm content="确认删除该任务吗" position="lt" :ok-button-props="{status: 'danger'}"
+                                              ok-text="确认删除" type="error" @ok="handlerDeleteTask(record.id)">
+                                    <icon-delete/>
+                                </a-popconfirm>
                             </template>
                         </a-button>
                     </a-space>
                 </template>
             </a-table>
+        </div>
+        <div v-else>
+            <a-empty description="还没有任务" />
         </div>
     </div>
 </template>

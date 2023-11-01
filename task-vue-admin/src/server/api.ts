@@ -1,4 +1,5 @@
 import {sendDelete, sendGet, sendPost, sendPut} from '@/server/request';
+import type {OptionalTask, TaskQueryData} from '@/views/Tasks.vue';
 
 export interface Page<T> {
     page: number,
@@ -68,25 +69,35 @@ export class UserApi {
 }
 
 export class TaskApi {
-    static async saveTask(){
-
+    static async saveTask(taskInfo: OptionalTask){
+        return sendPost("/task", undefined, taskInfo)
     }
     static async queryTaskInfo(taskId: number) {
         return sendGet<Task>(`/task/${taskId}`);
     }
-    static async updateTask() {
-
+    static async updateTask(taskInfo: OptionalTask) {
+        return sendPut("/task", undefined, taskInfo)
     }
     static async deleteTask(taskId: number) {
-        const result = await sendDelete<void>(`/task/${taskId}`);
-        return result.code === 200;
+        return  sendDelete<void>(`/task/${taskId}`);
     }
     static updateTaskStatus(taskId: number, status: number) {
         return sendPut<void>("/task/status", {id: taskId, status: status});
     }
 
-    static getTaskList(page: number, size: number) {
-        return sendPost<Task[]>("/task/list", {page: page, size: size}, );
+    static getTaskList(query: TaskQueryData) {
+        const condition = {
+            name: query.name,
+            taskType: query.taskType,
+            handlerType: query.handlerType,
+            startTime: '',
+            endTime: ''
+        }
+        if (query.rangeTime.length > 1) {
+            condition.startTime = query.rangeTime[0];
+            condition.endTime = query.rangeTime[1];
+        }
+        return sendPost<Page<Task>>("/task/list", {page: query.page, size: query.size}, condition);
     }
 }
 

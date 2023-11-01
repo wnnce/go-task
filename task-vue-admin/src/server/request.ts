@@ -78,7 +78,7 @@ export function sendPost<T>(url: string, param?: object, data?: object) {
     return axiosRequest<T>(params)
 }
 
-export function sendPut<T>(url: string, param: object, data?: Object){
+export function sendPut<T>(url: string, param?: object, data?: Object){
     const params: HttpParams = {
         url: url,
         method: 'PUT',
