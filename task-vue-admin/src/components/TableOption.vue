@@ -5,7 +5,7 @@ import {IconPlus, IconRefresh} from '@arco-design/web-vue/es/icon';
 interface TableOptionProps {
     buttonText?: string
 }
-const emits = defineEmits(['add'])
+const emits = defineEmits(['add', 'refresh'])
 const props = withDefaults(defineProps<TableOptionProps>(), {
     buttonText: '新增'
 })
@@ -25,7 +25,7 @@ const props = withDefaults(defineProps<TableOptionProps>(), {
             </a-button>
         </div>
         <div>
-            <a-button type="outline" shape="circle" status="success">
+            <a-button type="outline" shape="circle" status="success" @click="emits('refresh')">
                 <icon-refresh />
             </a-button>
         </div>
