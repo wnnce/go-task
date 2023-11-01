@@ -23,11 +23,11 @@ export interface TaskQueryData {
 }
 
 export interface OptionalTask {
-    id: number | undefined,
+    id?: number,
     name: string,
     remark: string,
-    taskType: number | undefined,
-    handlerType: number | undefined,
+    taskType?: number,
+    handlerType?: number,
     handlerName: string,
     params: string,
 }
@@ -192,23 +192,19 @@ const handlerDeleteTask = async (taskId: number) => {
     }
 }
 
-const handlerPageChange = async (page: number) => {
-    tableLoading.value = true;
+const handlerPageChange = (page: number) => {
     queryData.page = page;
-    await getTaskPage();
-    tableLoading.value = false;
+    getTaskPage();
 }
 
-const handlerSizeChange = async (size: number) => {
-    tableLoading.value = true;
+const handlerSizeChange = (size: number) => {
     queryData.size = size;
     queryData.page = 1;
-    await getTaskPage();
-    tableLoading.value = false;
+    getTaskPage();
 }
-const handlerSearch = async () => {
+const handlerSearch = () => {
     searchButtonLoading.value = true;
-    await getTaskPage();
+    getTaskPage();
     searchButtonLoading.value = false;
 }
 
@@ -367,7 +363,7 @@ onMounted(() => {
                         </a-button>
                         <a-button type="outline" status="danger" shape="circle">
                             <template #icon>
-                                <a-popconfirm content="确认删除该任务吗" position="lt" :ok-button-props="{status: 'danger'}"
+                                <a-popconfirm content="确认删除该任务吗" position="tr" :ok-button-props="{status: 'danger'}"
                                               ok-text="确认删除" type="error" @ok="handlerDeleteTask(record.id)">
                                     <icon-delete/>
                                 </a-popconfirm>

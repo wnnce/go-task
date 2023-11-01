@@ -1,22 +1,18 @@
 <script setup lang="ts">
-import {IconDelete, IconInfo, IconSearch, IconClockCircle} from '@arco-design/web-vue/es/icon';
+import {IconDelete, IconInfo, IconSearch, IconClockCircle, IconLoop} from '@arco-design/web-vue/es/icon';
 import type {TableColumnData} from '@arco-design/web-vue';
 import type {Description} from '@/views/Tasks.vue';
-import {ref} from 'vue';
-
-interface Record {
-    id: number,
-    taskId: number,
-    taskName: string,
-    executeCount: number,
-    executeName: string,
-    executeAddress: string,
-    executeParams: string,
-    createTime: string,
-    runnerTime: string,
-    stopTime: string,
-    status: number,
-    resultContent: string
+import {onMounted, reactive, ref} from 'vue';
+import type {Page, Record} from '@/server/api';
+import {RecordApi} from '@/server/api';
+import {formatDateTime} from '@/assets/script/utils';
+import {Msg, Not} from '@/assets/script/common';
+import TableOption from '@/components/TableOption.vue';
+export interface RecordQueryData {
+    page: number,
+    size: number,
+    taskId?: number,
+    status?: number
 }
 
 const recordColumns: TableColumnData[] = [
@@ -42,13 +38,13 @@ const recordColumns: TableColumnData[] = [
     },
     {
         title: '创建时间',
-        dataIndex: 'createTime',
+        slotName: 'createTime',
         width: 180,
         align: 'center'
     },
     {
         title: '结束时间',
-        dataIndex: 'stopTime',
+        slotName: 'stopTime',
         width: 180,
         align: 'center'
     },
@@ -65,22 +61,15 @@ const recordColumns: TableColumnData[] = [
         align: 'center'
     }
 ]
-const recordData: Record[] = [
-    {
-        id: 1,
-        taskId: 1,
-        taskName: '测试任务',
-        executeCount: 0,
-        executeName: '单机',
-        executeAddress: '127.0.0.1:8454',
-        executeParams: '{"name": "xin"}',
-        createTime: '2011-11-11 10:10:10',
-        runnerTime: '2011-11-11 10:10:10',
-        stopTime: '2011-11-11 10:10:10',
-        status: 0,
-        resultContent: '成功'
-    }
-]
+const queryData = reactive<RecordQueryData>({
+    page: 1,
+    size: 10,
+    taskId: undefined,
+    status: undefined
+})
+const recordPage = ref<Page<Record>>();
+const tableLoading = ref<boolean>(false);
+const searchLoading = ref<boolean>(false);
 const infoModelVisible = ref<boolean>(false);
 const recordInfoData = ref();
 const recordToDescriptions = (record: Record): Description[] => {
@@ -111,15 +100,15 @@ const recordToDescriptions = (record: Record): Description[] => {
         },
         {
             label: '创建时间',
-            value: record.createTime
+            value: formatDateTime(record.createTime)
         },
         {
             label: '运行时间',
-            value: record.runnerTime
+            value: formatDateTime(record.runnerTime)
         },
         {
             label: '结束时间',
-            value: record.stopTime
+            value: formatDateTime(record.stopTime)
         },
         {
             label: '状态',
@@ -141,28 +130,78 @@ const recordToDescriptions = (record: Record): Description[] => {
     ]
 }
 
-const handlerRecordInfo = (recordId: number) => {
-    console.log(recordId);
-    recordInfoData.value = recordToDescriptions(recordData[0]);
-    infoModelVisible.value = true;
+const getRecordPage = async () => {
+    tableLoading.value = true;
+    const result = await RecordApi.getRecordList(queryData)
+    tableLoading.value = false;
+    if (result.code === 200) {
+        recordPage.value = result.data
+    }
 }
+const handlerRecordInfo = async (recordId: number) => {
+    infoModelVisible.value = true;
+    const result = await RecordApi.queryRecordInfo(recordId);
+    if (result.code === 200) {
+        recordInfoData.value = recordToDescriptions(result.data);
+    }
+}
+
+const handlerDelete = async (recordId: number) => {
+    const message = Msg.loading("记录删除中")
+    const result = await RecordApi.deleteRecord(recordId);
+    if (result.code === 200) {
+        message.close();
+        getRecordPage();
+        Not.success("删除成功")
+    }
+}
+
+const handlerSearch = async () => {
+    searchLoading.value = true;
+    await getRecordPage();
+    searchLoading.value = false;
+}
+
+const resetQueryData = () => {
+    queryData.status = undefined;
+    queryData.taskId = undefined;
+}
+
+const handlerPageChange = (page: number) => {
+    queryData.page = page;
+    getRecordPage();
+}
+
+const handlerSizeChange = (size: number) => {
+    queryData.size = size;
+    queryData.page = 1;
+    getRecordPage();
+}
+
+onMounted(() => {
+    getRecordPage();
+})
 </script>
 
 <template>
     <a-modal v-model:visible="infoModelVisible" title="运行记录详情" title-align="start">
-        <a-descriptions :data="recordInfoData" :column="1" />
+        <a-descriptions v-if="recordInfoData" :data="recordInfoData" :column="1" />
+        <div v-else class="text-center py-4">
+            <a-spin tip="加载中" />
+        </div>
     </a-modal>
     <div>
         <div class="mb-8">
             <a-space>
-                <a-input placeholder="任务ID" size="large"/>
-                <a-select placeholder="任务状态" size="large" style="width: 120px">
-                    <a-option value="1">等待中</a-option>
-                    <a-option value="2">运行中</a-option>
-                    <a-option value="0">成功</a-option>
-                    <a-option value="4">失败</a-option>
+                <a-input-number v-model="queryData.taskId" placeholder="任务ID" size="large"/>
+                <a-select v-model="queryData.status" placeholder="任务状态" size="large" style="width: 120px">
+                    <a-option :value="0">全部</a-option>
+                    <a-option :value="2">等待中</a-option>
+                    <a-option :value="3">运行中</a-option>
+                    <a-option :value="1">成功</a-option>
+                    <a-option :value="4">失败</a-option>
                 </a-select>
-                <a-button type="primary" size="large">
+                <a-button type="primary" size="large" @click="handlerSearch" :loading="searchLoading">
                     <template #default>
                         搜索
                     </template>
@@ -170,7 +209,7 @@ const handlerRecordInfo = (recordId: number) => {
                         <icon-search />
                     </template>
                 </a-button>
-                <a-button size="large">
+                <a-button size="large" @click="resetQueryData">
                     <template #default>
                         清空
                     </template>
@@ -180,8 +219,19 @@ const handlerRecordInfo = (recordId: number) => {
                 </a-button>
             </a-space>
         </div>
-        <div>
-            <a-table :columns="recordColumns" :data="recordData" >
+        <TableOption :show-add-button="false" @refresh="getRecordPage"/>
+        <div v-if="recordPage">
+            <a-table :columns="recordColumns" :data="recordPage.list" :loading="tableLoading"
+                     :pagination="{total: recordPage.total, pageSize: recordPage.size, current: recordPage.page, pageSizeOptions: [10, 20, 40], defaultPageSize: 10, showPageSize: true}"
+                     @page-change="handlerPageChange"
+                     @page-size-change="handlerSizeChange"
+            >
+                <template #createTime="{ record }">
+                    {{formatDateTime(record.createTime)}}
+                </template>
+                <template #stopTime="{ record }">
+                    {{formatDateTime(record.stopTime)}}
+                </template>
                 <template #status="{ record }">
                     <a-typography-text type="success" v-if="record.status === 0">成功</a-typography-text>
                     <a-typography-text type="danger" v-if="record.status === 3">失败</a-typography-text>
@@ -202,17 +252,23 @@ const handlerRecordInfo = (recordId: number) => {
                         </a-button>
                         <a-button type="outline" status="warning" shape="circle">
                             <template #icon>
-                                <icon-refresh/>
+                                <icon-loop/>
                             </template>
                         </a-button>
                         <a-button type="outline" status="danger" shape="circle">
                             <template #icon>
-                                <icon-delete/>
+                                <a-popconfirm content="确认删除这条运行记录吗" position="tr" :ok-button-props="{status: 'danger'}"
+                                              ok-text="确认删除" type="error" @ok="handlerDelete(record.id)">
+                                    <icon-delete/>
+                                </a-popconfirm>
                             </template>
                         </a-button>
                     </a-space>
                 </template>
             </a-table>
+        </div>
+        <div v-else>
+            <a-empty description="还没有运行记录" />
         </div>
     </div>
 </template>

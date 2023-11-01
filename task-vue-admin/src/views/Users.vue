@@ -107,19 +107,15 @@ const handlerDelete = async (userId: number) => {
     }
 }
 
-const handlerPageChange = async (page: number) => {
-    tableLoading.value = true;
+const handlerPageChange = (page: number) => {
     queryData.page = page;
-    await getUserPage()
-    tableLoading.value = false;
+    getUserPage()
 }
 
-const handlerSizeChange = async (size: number) => {
-    tableLoading.value = true;
+const handlerSizeChange = (size: number) => {
     queryData.size = size;
     queryData.page = 1;
-    await getUserPage();
-    tableLoading.value = false;
+    getUserPage();
 }
 onMounted(() => {
     getUserPage();
@@ -194,7 +190,7 @@ onMounted(() => {
                     {{formatDateTime(record.lastLoginTime)}}
                 </template>
                 <template #optional="{ record }">
-                    <a-popconfirm content="确认删除该用户吗" position="lt" :ok-button-props="{status: 'danger'}"
+                    <a-popconfirm content="确认删除该用户吗" position="tr" :ok-button-props="{status: 'danger'}"
                                   ok-text="确认删除" type="error" @ok="handlerDelete(record.id)">
                         <a-button type="text" status="danger">删除</a-button>
                     </a-popconfirm>

@@ -1,5 +1,6 @@
 import {sendDelete, sendGet, sendPost, sendPut} from '@/server/request';
 import type {OptionalTask, TaskQueryData} from '@/views/Tasks.vue';
+import type {RecordQueryData} from '@/views/Records.vue';
 
 export interface Page<T> {
     page: number,
@@ -54,16 +55,16 @@ export interface TaskLog {
 }
 
 export class UserApi {
-    static saveUser(name: string, password: string, remark?: string) {
+    static async saveUser(name: string, password: string, remark?: string) {
         return sendPost<void>("/user", undefined, {name: name, password: password, remark: remark})
     }
-    static getUserList(page: number, size: number, name?: string) {
+    static async getUserList(page: number, size: number, name?: string) {
         return sendGet<Page<User>>("/user/list", {page: page, size: size, name: name});
     }
-    static login(name: string, password: string) {
+    static async login(name: string, password: string) {
         return sendPost<string>("/user/login", undefined, {name: name, password: password});
     }
-    static deleteUser(userId: number) {
+    static async deleteUser(userId: number) {
         return sendDelete<void>(`/user/${userId}`);
     }
 }
@@ -81,11 +82,11 @@ export class TaskApi {
     static async deleteTask(taskId: number) {
         return  sendDelete<void>(`/task/${taskId}`);
     }
-    static updateTaskStatus(taskId: number, status: number) {
+    static async updateTaskStatus(taskId: number, status: number) {
         return sendPut<void>("/task/status", {id: taskId, status: status});
     }
 
-    static getTaskList(query: TaskQueryData) {
+    static async getTaskList(query: TaskQueryData) {
         const condition = {
             name: query.name,
             taskType: query.taskType,
@@ -102,10 +103,10 @@ export class TaskApi {
 }
 
 export class RecordApi {
-    static getRecordList(page: number, size: number, ) {
-        return sendPost<Record[]>("/record/list", {page: page, size: size}, );
+    static async getRecordList(query: RecordQueryData) {
+        return sendPost<Page<Record>>("/record/list", {page: query.page, size: query.size}, {taskId: query.taskId, status: query.status});
     }
-    static queryRecordInfo(recordId: number) {
+    static async queryRecordInfo(recordId: number) {
         return sendGet<Record>(`/record/${recordId}`);
     }
     static async deleteRecord(recordId: number) {

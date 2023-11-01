@@ -3,10 +3,12 @@
 import {IconPlus, IconRefresh} from '@arco-design/web-vue/es/icon';
 
 interface TableOptionProps {
-    buttonText?: string
+    showAddButton?: boolean
+    buttonText?: string,
 }
 const emits = defineEmits(['add', 'refresh'])
 const props = withDefaults(defineProps<TableOptionProps>(), {
+    showAddButton: true,
     buttonText: '新增'
 })
 
@@ -15,7 +17,7 @@ const props = withDefaults(defineProps<TableOptionProps>(), {
 <template>
     <div class="flex justify-between my-4 items-center px-1">
         <div>
-            <a-button type="primary" @click="emits('add')">
+            <a-button v-if="showAddButton" type="primary" @click="emits('add')">
                 <template #default>
                     {{props.buttonText}}
                 </template>
