@@ -8,14 +8,23 @@ type Record struct {
 	ExecuteCount   uint       `json:"executeCount"`
 	ExecuteName    string     `json:"executeName"`
 	ExecuteAddress string     `json:"executeAddress"`
-	ExecuteParams  string     `json:"executeParams"`
+	ExecuteParams  string     `json:"executeParams,omitempty"`
 	CreateTime     *time.Time `json:"createTime" xorm:"created"`
-	RunnerTime     *time.Time `json:"runnerTime"`
-	StopTime       *time.Time `json:"stopTime"`
+	RunnerTime     *time.Time `json:"runnerTime,o,omitempty"`
+	StopTime       *time.Time `json:"stopTim,omitempty"`
 	Status         uint       `json:"status"`
-	ResultContent  string     `json:"resultContent"`
+	ResultContent  string     `json:"resultContent,omitempty"`
 }
 
 func (r *Record) TableName() string {
+	return "xn_task_record"
+}
+
+type TaskRecord struct {
+	Record   `xorm:"extends"`
+	TaskName string `json:"taskName" xorm:"task_name"`
+}
+
+func (*TaskRecord) TableName() string {
 	return "xn_task_record"
 }

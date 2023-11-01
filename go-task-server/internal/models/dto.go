@@ -17,6 +17,6 @@ type TaskQuery struct {
 }
 
 type RecordQuery struct {
-	RecordId int `json:"recordId"`
-	Status   int `json:"status"`
+	TaskId int `json:"taskId"`
+	Status int `json:"status"`
 }

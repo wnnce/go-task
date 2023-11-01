@@ -9,7 +9,7 @@ import (
 type RecordService interface {
 	SaveRecord(record *models.Record) error
 	PageRecord(page, size int, query *models.RecordQuery) (*models.Page, error)
-	QueryRecordInfo(recordId int) (*models.Record, error)
+	QueryRecordInfo(recordId int) (*models.TaskRecord, error)
 	DeleteRecord(recordId int) error
 	ListRecordLog(recordId int) (*[]models.TaskLog, error)
 	QueryRecordLogInfo(logId int) (*models.TaskLog, error)
@@ -43,7 +43,7 @@ func (r RecordServiceImpl) PageRecord(page, size int, query *models.RecordQuery)
 	return record, nil
 }
 
-func (r RecordServiceImpl) QueryRecordInfo(recordId int) (*models.Record, error) {
+func (r RecordServiceImpl) QueryRecordInfo(recordId int) (*models.TaskRecord, error) {
 	record := r.recordRepo.QueryRecordInfo(recordId)
 	if record == nil {
 		return nil, common.NewCustomError(404, "运行记录不存在")

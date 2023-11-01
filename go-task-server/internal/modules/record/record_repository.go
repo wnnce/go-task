@@ -10,7 +10,7 @@ import (
 type RecordRepository interface {
 	SaveTaskRecord(record *models.Record) int64
 	PageRecord(page, size int, query *models.RecordQuery) (*models.Page, error)
-	QueryRecordInfo(recordId int) *models.Record
+	QueryRecordInfo(recordId int) *models.TaskRecord
 	DeleteRecord(recordId int) int64
 }
 
@@ -49,11 +49,12 @@ func (r *RecordRepositoryImpl) PageRecord(page, size int, query *models.RecordQu
 	} else {
 		offset = (page - 1) * size
 	}
-	listSession := r.engine.AllCols()
+	listSession := r.engine.SQL("select r.id, r.task_id, r.execute_count, r.execute_name, r.create_time, r.stop_time, r.status, t.name as task_name from xn_task_record as r left join xn_task_info as t on t.id = r.task_id")
 	r.handlerPageSession(listSession, query)
-	records := make([]models.Record, 0)
+	records := make([]models.TaskRecord, 0)
 	err := listSession.Limit(size, offset).Find(&records)
 	if err != nil {
+		log.Printf("查询运行记录失败，错误信息：%v\n", err)
 		return nil, err
 	}
 	return &models.Page{
@@ -65,9 +66,12 @@ func (r *RecordRepositoryImpl) PageRecord(page, size int, query *models.RecordQu
 	}, nil
 }
 
-func (r *RecordRepositoryImpl) QueryRecordInfo(recordId int) *models.Record {
-	record := &models.Record{}
-	result, err := r.engine.ID(recordId).Get(record)
+func (r *RecordRepositoryImpl) QueryRecordInfo(recordId int) *models.TaskRecord {
+	record := &models.TaskRecord{}
+	result, err := r.engine.
+		SQL("select r.*, t.name as task_name from xn_task_record as r left join xn_task_info as t on t.id = r.task_id").
+		Where("id = ?", record).
+		Get(record)
 	if err != nil {
 		log.Printf("获取记录详情失败，错误信息：%v\n", err)
 	}
@@ -87,8 +91,8 @@ func (r *RecordRepositoryImpl) DeleteRecord(recordId int) int64 {
 
 func (r *RecordRepositoryImpl) handlerPageSession(session *xorm.Session, query *models.RecordQuery) {
 	session.Where("id > ?", 0)
-	if query.RecordId != 0 {
-		session.And("id = ?", query.RecordId)
+	if query.TaskId != 0 {
+		session.And("id = ?", query.TaskId)
 	}
 	if query.Status != 0 {
 		session.And("status = ?", query.Status-1)

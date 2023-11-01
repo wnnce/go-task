@@ -51,7 +51,7 @@ func (t *TaskRepositoryImpl) PageTask(page, size int, query *models.TaskQuery) (
 	} else {
 		offset = (page - 1) * size
 	}
-	listSession := t.engine.AllCols()
+	listSession := t.engine.Cols("id", "name", "task_type", "handler_type", "create_time", "status")
 	t.handlerPageSession(listSession, query)
 	tasks := make([]models.Task, 0)
 	err := listSession.Limit(size, offset).Find(&tasks)
