@@ -9,7 +9,7 @@ type Record struct {
 	ExecuteName    string     `json:"executeName"`
 	ExecuteAddress string     `json:"executeAddress"`
 	ExecuteParams  string     `json:"executeParams"`
-	CreateTime     *time.Time `json:"createTime" xorm:"created"'`
+	CreateTime     *time.Time `json:"createTime" xorm:"created"`
 	RunnerTime     *time.Time `json:"runnerTime"`
 	StopTime       *time.Time `json:"stopTime"`
 	Status         uint       `json:"status"`
