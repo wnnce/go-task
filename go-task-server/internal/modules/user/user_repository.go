@@ -9,11 +9,12 @@ import (
 )
 
 type UserRepository interface {
-	Login(username, password string) *models.User
+	Login(username, password string) (*models.User, error)
 	AddUser(username, password, remark string) int64
 	PageUser(name string, page, size int) (*models.Page, error)
 	UpdateLastIpById(userId uint, ip string)
 	ExistUserByName(name string) bool
+	DeleteUserById(userId int) int64
 }
 
 type UserRepositoryImpl struct {
@@ -24,13 +25,14 @@ func NewUserRepository(engine *xorm.Engine) UserRepository {
 	return &UserRepositoryImpl{engine: engine}
 }
 
-func (u *UserRepositoryImpl) Login(username, password string) *models.User {
+func (u *UserRepositoryImpl) Login(username, password string) (*models.User, error) {
 	user := new(models.User)
 	_, err := u.engine.Where("name = ? and password = ?", username, password).Get(user)
 	if err != nil {
 		log.Printf("用户登录查询异常，错误信息：%v\n", err)
+		return nil, err
 	}
-	return user
+	return user, nil
 }
 
 func (u *UserRepositoryImpl) AddUser(username, password, remark string) int64 {
@@ -64,7 +66,7 @@ func (u *UserRepositoryImpl) PageUser(name string, page, size int) (*models.Page
 	} else {
 		offset = (page - 1) * size
 	}
-	listSession := u.engine.AllCols()
+	listSession := u.engine.Cols("id", "name", "create_time", "last_login_time", "last_login_ip", "remark")
 	u.handlerSessionByName(listSession, name)
 	users := make([]models.User, 0)
 	err := listSession.Limit(size, offset).Find(&users)
@@ -104,4 +106,12 @@ func (u *UserRepositoryImpl) handlerSessionByName(session *xorm.Session, name st
 	if len(name) > 0 {
 		session.Where("name like ?", "%"+name+"%")
 	}
+}
+
+func (u *UserRepositoryImpl) DeleteUserById(userId int) int64 {
+	result, err := u.engine.ID(userId).Delete(&models.User{})
+	if err != nil {
+		log.Printf("删除用户失败，错误信息：%v\n", err)
+	}
+	return result
 }

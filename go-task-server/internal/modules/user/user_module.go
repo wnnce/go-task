@@ -18,4 +18,5 @@ func InitUserModule(app *fiber.App, engine *xorm.Engine, wg *sync.WaitGroup) {
 	userApi.Post("/login", userHandler.Login)
 	userApi.Post("/", userHandler.CreateUser)
 	userApi.Get("/list", userHandler.ListUser)
+	userApi.Delete("/:id", userHandler.DeleteUser)
 }

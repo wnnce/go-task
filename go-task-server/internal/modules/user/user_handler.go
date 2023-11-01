@@ -52,3 +52,15 @@ func (u *UserHandler) ListUser(c *fiber.Ctx) error {
 	}
 	return utils.Ok(c, pageResult)
 }
+
+func (u *UserHandler) DeleteUser(c *fiber.Ctx) error {
+	userId, err := c.ParamsInt("id")
+	if err != nil {
+		return utils.FailRequest(c, "请求参数错误")
+	}
+	err = u.userService.DeleteUser(userId)
+	if err != nil {
+		return utils.Fail(c, err)
+	}
+	return utils.Ok(c, nil)
+}
