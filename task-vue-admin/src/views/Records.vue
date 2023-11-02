@@ -3,8 +3,8 @@ import {IconDelete, IconInfo, IconSearch, IconClockCircle, IconLoop} from '@arco
 import type {TableColumnData} from '@arco-design/web-vue';
 import type {Description} from '@/views/Tasks.vue';
 import {onMounted, reactive, ref} from 'vue';
-import type {Page, Record} from '@/server/api';
-import {RecordApi} from '@/server/api';
+import type {Page, Record, TaskLog} from '@/server/api';
+import {RecordApi, TaskLogApi} from '@/server/api';
 import {formatDateTime} from '@/assets/script/utils';
 import {Msg, Not} from '@/assets/script/common';
 import TableOption from '@/components/TableOption.vue';
@@ -72,6 +72,11 @@ const tableLoading = ref<boolean>(false);
 const searchLoading = ref<boolean>(false);
 const infoModelVisible = ref<boolean>(false);
 const recordInfoData = ref();
+const logModelVisible = ref<boolean>(false);
+const recordLogsLoading = ref<boolean>(false);
+const recordLogList = ref<TaskLog[]>()
+const logInfoVisible = ref<boolean>(false);
+const recordLogInfo = ref<TaskLog>()
 const recordToDescriptions = (record: Record): Description[] => {
     return [
         {
@@ -167,6 +172,24 @@ const resetQueryData = () => {
     queryData.taskId = undefined;
 }
 
+const handlerRecordLogs = async (recordId: number) => {
+    logModelVisible.value = true;
+    recordLogsLoading.value = true;
+    const result = await TaskLogApi.getLogListByRecordId(recordId);
+    recordLogsLoading.value = false;
+    if (result.code === 200) {
+        recordLogList.value = result.data;
+    }
+}
+
+const handlerLogInfo = async (logId: number) => {
+    logInfoVisible.value = true;
+    const result = await TaskLogApi.getLogInfo(logId);
+    if (result.code === 200) {
+        recordLogInfo.value = result.data;
+    }
+}
+
 const handlerPageChange = (page: number) => {
     queryData.page = page;
     getRecordPage();
@@ -188,6 +211,42 @@ onMounted(() => {
         <a-descriptions v-if="recordInfoData" :data="recordInfoData" :column="1" />
         <div v-else class="text-center py-4">
             <a-spin tip="加载中" />
+        </div>
+    </a-modal>
+    <a-modal v-model:visible="logInfoVisible" title="日志详情" title-align="start" width="800px" :footer="false"
+             @close="recordLogInfo = undefined"
+    >
+        <div v-if="recordLogInfo">
+            <div class="flex justify-between border-l-sky-400 border-l-4 py-1 pl-2">
+                <div>
+                    任务ID：{{recordLogInfo.taskId}}
+                </div>
+                <div class="text-gray-600">
+                    运行时间：{{recordLogInfo.createTime}}
+                </div>
+            </div>
+            <div class="radius-md bg-gray-100 p-4 text-gray-800 mt-2">
+                {{recordLogInfo.content}}
+            </div>
+        </div>
+        <div v-else class="py-4">
+            <a-spin tip="日志加载中" />
+        </div>
+    </a-modal>
+    <a-modal v-model:visible="logModelVisible" title="运行日志" title-align="start" :footer="false">
+        <div v-if="recordLogsLoading" class="py-4 text-center">
+            <a-spin tip="日志加载中" />
+        </div>
+        <div v-else>
+            <div v-if="recordLogList && recordLogList.length > 0" v-for="(item, index) in recordLogList"
+                 class="border-b hover:cursor-pointer hover:border-b-sky-400 transition"
+                 @click="handlerLogInfo(item.id)"
+            >
+                {{`${index}、${item.createTime}`}}}
+            </div>
+            <div v-else class="py-2">
+                <a-empty description="还没有日志" />
+            </div>
         </div>
     </a-modal>
     <div>
@@ -245,7 +304,7 @@ onMounted(() => {
                                 <icon-info/>
                             </template>
                         </a-button>
-                        <a-button type="outline" shape="circle">
+                        <a-button type="outline" shape="circle" @click="handlerRecordLogs(record.id)">
                             <template #icon>
                                 <icon-clock-circle />
                             </template>

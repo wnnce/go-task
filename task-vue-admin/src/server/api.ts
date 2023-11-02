@@ -36,9 +36,11 @@ export interface Task {
 export interface Record {
     id: number,
     taskId: number,
+    taskName: string,
     executeCount: number,
     executeName: string,
     executeAddress: string,
+    executeParams: string,
     createTime: string,
     runnerTime: string,
     stopTime: string,
@@ -111,5 +113,14 @@ export class RecordApi {
     }
     static async deleteRecord(recordId: number) {
         return sendDelete<void>(`/record/${recordId}`);
+    }
+}
+
+export class TaskLogApi {
+    static async getLogListByRecordId(recordId: number) {
+        return sendGet<TaskLog[]>(`/record/logs/list/${recordId}`)
+    }
+    static async getLogInfo(logId: number) {
+        return sendGet<TaskLog>(`/record/logs${logId}`)
     }
 }
