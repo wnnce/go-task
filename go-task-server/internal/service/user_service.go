@@ -1,8 +1,9 @@
-package user
+package service
 
 import (
 	"go-task-server/internal/common"
 	"go-task-server/internal/models"
+	"go-task-server/internal/repository"
 	"go-task-server/internal/utils"
 	"log"
 )
@@ -15,10 +16,10 @@ type UserService interface {
 }
 
 type UserServiceImpl struct {
-	userRepo UserRepository
+	userRepo repository.UserRepository
 }
 
-func NewUserService(userRepo UserRepository) UserService {
+func NewUserService(userRepo repository.UserRepository) UserService {
 	return &UserServiceImpl{userRepo: userRepo}
 }
 

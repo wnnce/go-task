@@ -1,18 +1,19 @@
-package user
+package handler
 
 import (
 	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"go-task-server/internal/models"
+	"go-task-server/internal/service"
 	"go-task-server/internal/utils"
 	"log"
 )
 
 type UserHandler struct {
-	userService UserService
+	userService service.UserService
 }
 
-func NewUserHandler(userService UserService) *UserHandler {
+func NewUserHandler(userService service.UserService) *UserHandler {
 	return &UserHandler{userService: userService}
 }
 

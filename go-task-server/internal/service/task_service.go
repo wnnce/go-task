@@ -1,8 +1,9 @@
-package task
+package service
 
 import (
 	"go-task-server/internal/common"
 	"go-task-server/internal/models"
+	"go-task-server/internal/repository"
 )
 
 type TaskService interface {
@@ -15,10 +16,10 @@ type TaskService interface {
 }
 
 type TaskServiceImpl struct {
-	taskRepo TaskRepository
+	taskRepo repository.TaskRepository
 }
 
-func NewTaskService(taskRepo TaskRepository) TaskService {
+func NewTaskService(taskRepo repository.TaskRepository) TaskService {
 	return &TaskServiceImpl{
 		taskRepo: taskRepo,
 	}

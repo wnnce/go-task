@@ -1,16 +1,17 @@
-package record
+package handler
 
 import (
 	"github.com/gofiber/fiber/v2"
 	"go-task-server/internal/models"
+	"go-task-server/internal/service"
 	"go-task-server/internal/utils"
 )
 
 type RecordHandler struct {
-	recordService RecordService
+	recordService service.RecordService
 }
 
-func NewRecordHandler(recordService RecordService) *RecordHandler {
+func NewRecordHandler(recordService service.RecordService) *RecordHandler {
 	return &RecordHandler{
 		recordService: recordService,
 	}

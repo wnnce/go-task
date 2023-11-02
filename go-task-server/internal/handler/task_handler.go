@@ -1,17 +1,18 @@
-package task
+package handler
 
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/log"
 	"go-task-server/internal/models"
+	"go-task-server/internal/service"
 	"go-task-server/internal/utils"
 )
 
 type TaskHandler struct {
-	taskService TaskService
+	taskService service.TaskService
 }
 
-func NewTaskHandler(taskService TaskService) *TaskHandler {
+func NewTaskHandler(taskService service.TaskService) *TaskHandler {
 	return &TaskHandler{
 		taskService: taskService,
 	}

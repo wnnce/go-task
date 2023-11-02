@@ -1,9 +1,10 @@
-package record
+package service
 
 import (
 	"github.com/gofiber/fiber/v2/log"
 	"go-task-server/internal/common"
 	"go-task-server/internal/models"
+	"go-task-server/internal/repository"
 )
 
 type RecordService interface {
@@ -16,11 +17,11 @@ type RecordService interface {
 }
 
 type RecordServiceImpl struct {
-	recordRepo RecordRepository
-	logRepo    TaskLogRepository
+	recordRepo repository.RecordRepository
+	logRepo    repository.TaskLogRepository
 }
 
-func NewRecordService(recordRepo RecordRepository, logRepo TaskLogRepository) RecordService {
+func NewRecordService(recordRepo repository.RecordRepository, logRepo repository.TaskLogRepository) RecordService {
 	return &RecordServiceImpl{
 		recordRepo: recordRepo,
 		logRepo:    logRepo,

@@ -1,4 +1,4 @@
-package task
+package repository
 
 import (
 	"github.com/gofiber/fiber/v2/log"
