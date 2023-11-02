@@ -1,9 +1,9 @@
 package record
 
 import (
+	"github.com/gofiber/fiber/v2/log"
 	"go-task-server/internal/common"
 	"go-task-server/internal/models"
-	"log"
 )
 
 type RecordService interface {
@@ -59,7 +59,7 @@ func (r RecordServiceImpl) DeleteRecord(recordId int) error {
 	// 异步线程删除该运行记录的所有日志
 	go func() {
 		result := r.logRepo.DeleteTaskLogByRecordId(recordId)
-		log.Printf("删除运行记录日志完成，删除条数：%d\n", result)
+		log.Infof("删除运行记录日志完成，删除条数：%d\n", result)
 	}()
 	return nil
 }

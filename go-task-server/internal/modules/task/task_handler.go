@@ -2,6 +2,7 @@ package task
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/log"
 	"go-task-server/internal/models"
 	"go-task-server/internal/utils"
 )
@@ -30,6 +31,7 @@ func (t *TaskHandler) AddTask(c *fiber.Ctx) error {
 }
 
 func (t *TaskHandler) QueryTaskPage(c *fiber.Ctx) error {
+	log.Debug("获取任务列表")
 	page := c.QueryInt("page", 1)
 	size := c.QueryInt("size", 5)
 	taskQuery := &models.TaskQuery{}

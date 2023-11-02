@@ -1,9 +1,9 @@
 package user
 
 import (
+	"github.com/gofiber/fiber/v2/log"
 	"go-task-server/internal/common"
 	"go-task-server/internal/models"
-	"log"
 	"math"
 	"xorm.io/xorm"
 )
@@ -29,7 +29,7 @@ func (u *UserRepositoryImpl) Login(username, password string) (*models.User, err
 	user := new(models.User)
 	_, err := u.engine.Where("name = ? and password = ?", username, password).Get(user)
 	if err != nil {
-		log.Printf("用户登录查询异常，错误信息：%v\n", err)
+		log.Errorf("用户登录查询异常，错误信息：%v\n", err)
 		return nil, err
 	}
 	return user, nil
@@ -43,7 +43,7 @@ func (u *UserRepositoryImpl) AddUser(username, password, remark string) int64 {
 	}
 	insert, err := u.engine.Cols("name", "password", "remark").Insert(user)
 	if err != nil {
-		log.Printf("添加用户失败，错误信息：%v\n", err)
+		log.Errorf("添加用户失败，错误信息：%v\n", err)
 		return 0
 	}
 	return insert
@@ -71,7 +71,7 @@ func (u *UserRepositoryImpl) PageUser(name string, page, size int) (*models.Page
 	users := make([]models.User, 0)
 	err := listSession.Limit(size, offset).Find(&users)
 	if err != nil {
-		log.Printf("查询用户列表失败，错误信息：%v\n", err)
+		log.Errorf("查询用户列表失败，错误信息：%v\n", err)
 		return nil, common.NewCustomError(500, "用户列表查询失败")
 	}
 	return &models.Page{
@@ -89,14 +89,14 @@ func (u *UserRepositoryImpl) UpdateLastIpById(userId uint, lastIp string) {
 	}
 	_, err := u.engine.ID(userId).Update(user)
 	if err != nil {
-		log.Printf("更新用户登陆信息失败，错误信息：%v\n", err)
+		log.Errorf("更新用户登陆信息失败，错误信息：%v\n", err)
 	}
 }
 
 func (u *UserRepositoryImpl) ExistUserByName(name string) bool {
 	result, err := u.engine.Where("name = ?", name).Exist(&models.User{})
 	if err != nil {
-		log.Printf("查询用户是否存在失败，错误信息：%v\n", err)
+		log.Errorf("查询用户是否存在失败，错误信息：%v\n", err)
 		return true
 	}
 	return result
@@ -111,7 +111,7 @@ func (u *UserRepositoryImpl) handlerSessionByName(session *xorm.Session, name st
 func (u *UserRepositoryImpl) DeleteUserById(userId int) int64 {
 	result, err := u.engine.ID(userId).Delete(&models.User{})
 	if err != nil {
-		log.Printf("删除用户失败，错误信息：%v\n", err)
+		log.Errorf("删除用户失败，错误信息：%v\n", err)
 	}
 	return result
 }

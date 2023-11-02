@@ -2,7 +2,7 @@ package task
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"log"
+	"github.com/gofiber/fiber/v2/log"
 	"sync"
 	"xorm.io/xorm"
 )
@@ -10,7 +10,7 @@ import (
 func InitTaskModule(app *fiber.App, engine *xorm.Engine, wg *sync.WaitGroup) {
 	wg.Add(1)
 	defer wg.Done()
-	log.Println("初始化任务模块")
+	log.Info("初始化任务模块")
 	taskApi := app.Group("/task")
 	repository := NewTaskRepository(engine)
 	service := NewTaskService(repository)

@@ -2,7 +2,7 @@ package record
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"log"
+	"github.com/gofiber/fiber/v2/log"
 	"sync"
 	"xorm.io/xorm"
 )
@@ -10,7 +10,7 @@ import (
 func InitRecordModule(app *fiber.App, engine *xorm.Engine, wg *sync.WaitGroup) {
 	wg.Add(1)
 	defer wg.Done()
-	log.Println("初始化运行记录模块")
+	log.Info("初始化运行记录模块")
 	recordRepository := NewRecordRepository(engine)
 	logRepository := NewTaskLogRepository(engine)
 	recordService := NewRecordService(recordRepository, logRepository)

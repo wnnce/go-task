@@ -1,8 +1,8 @@
 package record
 
 import (
+	"github.com/gofiber/fiber/v2/log"
 	"go-task-server/internal/models"
-	"log"
 	"math"
 	"xorm.io/xorm"
 )
@@ -27,7 +27,7 @@ func NewRecordRepository(engine *xorm.Engine) RecordRepository {
 func (r *RecordRepositoryImpl) SaveTaskRecord(record *models.Record) int64 {
 	insert, err := r.engine.Cols("task_id", "execute_name", "execute_params", "execute_address").Insert(record)
 	if err != nil {
-		log.Printf("保存运行记录失败，错误信息：%v\n", err)
+		log.Errorf("保存运行记录失败，错误信息：%v\n", err)
 	}
 	return insert
 }
@@ -54,7 +54,7 @@ func (r *RecordRepositoryImpl) PageRecord(page, size int, query *models.RecordQu
 	records := make([]models.TaskRecord, 0)
 	err := listSession.Limit(size, offset).Find(&records)
 	if err != nil {
-		log.Printf("查询运行记录失败，错误信息：%v\n", err)
+		log.Errorf("查询运行记录失败，错误信息：%v\n", err)
 		return nil, err
 	}
 	return &models.Page{
@@ -73,7 +73,7 @@ func (r *RecordRepositoryImpl) QueryRecordInfo(recordId int) *models.TaskRecord 
 		Where("id = ?", record).
 		Get(record)
 	if err != nil {
-		log.Printf("获取记录详情失败，错误信息：%v\n", err)
+		log.Errorf("获取记录详情失败，错误信息：%v\n", err)
 	}
 	if !result {
 		return nil
@@ -84,7 +84,7 @@ func (r *RecordRepositoryImpl) QueryRecordInfo(recordId int) *models.TaskRecord 
 func (r *RecordRepositoryImpl) DeleteRecord(recordId int) int64 {
 	result, err := r.engine.ID(recordId).Delete(&models.Record{})
 	if err != nil {
-		log.Printf("删除记录失败，错误信息：%v\n", err)
+		log.Errorf("删除记录失败，错误信息：%v\n", err)
 	}
 	return result
 }

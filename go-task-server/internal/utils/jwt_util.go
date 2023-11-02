@@ -2,7 +2,7 @@ package utils
 
 import (
 	"github.com/dgrijalva/jwt-go"
-	"log"
+	"github.com/gofiber/fiber/v2/log"
 	"time"
 )
 
@@ -36,7 +36,7 @@ func ParseToken(token string) bool {
 		return []byte(tokenKey), nil
 	})
 	if err != nil {
-		log.Printf("Token解析异常，错误信息：%v\n", err)
+		log.Errorf("Token解析异常，错误信息：%v\n", err)
 		return false
 	}
 	_, ok := parseToken.Claims.(*Claims)
