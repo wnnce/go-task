@@ -1,6 +1,6 @@
 import axios from 'axios';
-import {useRouter} from 'vue-router';
 import {Constants, Msg} from '@/assets/script/common';
+import router from '@/router';
 export declare type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE'
 export interface HttpParams {
     url: string,
@@ -17,7 +17,6 @@ export interface Result<T> {
 }
 
 const baseUrl: string = import.meta.env.VITE_BASE_URL;
-const router = useRouter();
 
 axios.defaults.timeout = 10000;
 axios.defaults.withCredentials = true;
@@ -37,14 +36,13 @@ axios.interceptors.response.use(res => {
         localStorage.removeItem(Constants.TOKEN_KEY)
         Msg.error('登录后才允许访问')
         setTimeout(() => {
-            router.push({
-                path: '/login'
-            })
-        }, 400)
+            router.push({ path: '/login' })
+        }, 500)
     }else if (message.includes("timeout")) {
         Msg.error("网络连接超时")
     } else {
-        Msg.error(message)
+        const errResult: Result<void> = error.response.data;
+        Msg.error(errResult.message)
     }
 })
 

@@ -28,9 +28,7 @@ const handleSubmit = async() => {
         const token = result.data;
         localStorage.setItem(Constants.TOKEN_KEY, token)
         Not.success("登录成功")
-        router.push({
-            path: '/home'
-        })
+        router.push({path: '/home'})
     }
 }
 </script>
