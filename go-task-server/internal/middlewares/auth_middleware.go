@@ -1,6 +1,7 @@
 package middlewares
 
 import (
+	"github.com/gofiber/contrib/websocket"
 	"github.com/gofiber/fiber/v2"
 	"go-task-server/internal/utils"
 )
@@ -9,6 +10,10 @@ import (
 // 如果有效则放行请求 无效返回401响应码和错误信息
 func AuthMiddleware(c *fiber.Ctx) error {
 	if c.OriginalURL() == "/user/login" {
+		return c.Next()
+	}
+	// 放行websocket请求
+	if websocket.IsWebSocketUpgrade(c) {
 		return c.Next()
 	}
 	authorization := c.Get("Authorization")

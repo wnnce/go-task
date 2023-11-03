@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"github.com/gofiber/contrib/websocket"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/log"
 	"go-task-server/internal/handler"
@@ -24,11 +25,13 @@ func InitProject(app *fiber.App, engine *xorm.Engine) {
 	userHandler := handler.NewUserHandler(userService)
 	taskHandler := handler.NewTaskHandler(taskService)
 	recordHandler := handler.NewRecordHandler(recordService)
+	socketHandler := handler.NewWebSocketHandler()
 	var wg sync.WaitGroup
-	wg.Add(3)
+	wg.Add(4)
 	go initUserRoute(app, userHandler, &wg)
 	go initTaskRoute(app, taskHandler, &wg)
 	go initRecordRoute(app, recordHandler, &wg)
+	go initWebSocketRoute(app, socketHandler, &wg)
 	wg.Wait()
 	log.Info("----------routers初始化完成----------")
 
@@ -66,4 +69,10 @@ func initRecordRoute(app *fiber.App, handler *handler.RecordHandler, wg *sync.Wa
 	recordApi.Delete("/:id", handler.DeleteRecord)
 	recordApi.Get("/logs/list/:id", handler.ListRecordLog)
 	recordApi.Get("/logs/:id", handler.RecordLogInfo)
+}
+
+func initWebSocketRoute(app *fiber.App, handler *handler.WebSocketHandler, wg *sync.WaitGroup) {
+	defer wg.Done()
+	log.Info("----------初始化WebSocket router----------")
+	app.Get("/client/registration/ws/:id", websocket.New(handler.WebSocket))
 }
