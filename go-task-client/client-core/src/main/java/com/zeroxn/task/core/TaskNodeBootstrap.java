@@ -75,6 +75,8 @@ public final class TaskNodeBootstrap {
                         }
                     });
             ChannelFuture cf = bootstrap.bind(config.getPort()).sync();
+            logger.debug("HTTP服务器启动成功，绑定端口：{}", config.getPort());
+            cf.channel().closeFuture().sync();
         } finally {
             bossGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();

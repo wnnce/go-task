@@ -12,11 +12,11 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Result {
+public class TaskResult {
     private Boolean result;
     private String message;
 
-    public Result(Boolean result) {
+    public TaskResult(Boolean result) {
         this.result = result;
     }
 }

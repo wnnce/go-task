@@ -1,5 +1,9 @@
 package com.zeroxn.task.core.handler;
 
+import com.fasterxml.jackson.databind.util.ClassUtil;
+import com.zeroxn.task.core.model.TaskInfo;
+import com.zeroxn.task.core.util.JsonUtils;
+import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
@@ -7,8 +11,11 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.*;
 import io.netty.util.CharsetUtil;
+import io.netty.util.internal.ClassInitializerUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.concurrent.CompletableFuture;
 
 /**
  * @Author: lisang
@@ -17,6 +24,7 @@ import org.slf4j.LoggerFactory;
  */
 public final class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
     private static final Logger logger = LoggerFactory.getLogger(HttpServerHandler.class);
+    private static final String TASK_URI = "/task/issued";
 
     @Override
     public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
@@ -37,8 +45,25 @@ public final class HttpServerHandler extends SimpleChannelInboundHandler<FullHtt
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest fullHttpRequest) throws Exception {
         final String uri = fullHttpRequest.uri();
-        final String content = "hello " + uri;
-        final FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, Unpooled.wrappedBuffer(content.getBytes(CharsetUtil.UTF_8)));
+        FullHttpResponse response;
+        if (TASK_URI.equals(uri)) {
+            if (fullHttpRequest.method().equals(HttpMethod.POST)) {
+                final ByteBuf content = fullHttpRequest.content();
+                final String requestBody = content.toString(CharsetUtil.UTF_8);
+                TaskInfo taskInfo = JsonUtils.form(requestBody, TaskInfo.class);
+                if (taskInfo == null) {
+                    response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.BAD_REQUEST);
+                } else {
+
+                    logger.info(taskInfo.toString());
+                    response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
+                }
+            } else {
+                response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.METHOD_NOT_ALLOWED);
+            }
+        } else {
+            response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.NOT_FOUND);
+        }
         ChannelFuture future = ctx.writeAndFlush(response);
         future.addListener(ChannelFutureListener.CLOSE);
     }
