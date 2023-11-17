@@ -28,7 +28,7 @@ public class TaskExecuteResult {
      */
     private LocalDateTime closingTime;
     /**
-     * 任务的运行结果
+     * 任务的运行结果 0:成功 1：失败
      */
     private Integer status;
     /**

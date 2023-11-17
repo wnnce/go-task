@@ -1,12 +1,10 @@
 package com.zeroxn.task.core;
 
+import com.zeroxn.task.core.model.TaskNodeConfig;
 import com.zeroxn.task.core.util.ClassUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.InvocationTargetException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicReference;
@@ -19,8 +17,13 @@ import java.util.concurrent.atomic.AtomicReference;
 public final class ManagerFactory {
     private static final Logger logger = LoggerFactory.getLogger(ManagerFactory.class);
     private static final AtomicReference<ProcessorManager> processorManagerReference = new AtomicReference<>();
-
+    private static final AtomicReference<TaskRunnerManager> runnerManagerReference = new AtomicReference<>();
     private ManagerFactory() {}
+
+    /**
+     * 实例化ProcessorManager 任务处理器管理类 通过原子类实现单例模式
+     * @return 返回任务处理器管理类
+     */
     public static ProcessorManager newProcessorManager() {
         ProcessorManager processorManager = processorManagerReference.get();
         if (processorManager == null) {
@@ -52,5 +55,22 @@ public final class ManagerFactory {
             }
         }
         return processorManager;
+    }
+
+    /**
+     * 实例化RunnerManager 任务运行管理器 通过原子类实现单例模式
+     * @return 返回TaskRunnerManager任务运行管理器
+     */
+    public static TaskRunnerManager newRunnerManager(TaskNodeConfig config) {
+        TaskRunnerManager runnerManager = runnerManagerReference.get();
+        if (runnerManager == null) {
+            TaskRunnerManager newRunnerManager = new TaskRunnerManager(config);
+            if (runnerManagerReference.compareAndSet(null, newRunnerManager)) {
+                runnerManager = newRunnerManager;
+            } else {
+                runnerManager = runnerManagerReference.get();
+            }
+        }
+        return runnerManager;
     }
 }

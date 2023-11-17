@@ -57,6 +57,7 @@ func initTaskRoute(app *fiber.App, handler *handler.TaskHandler, wg *sync.WaitGr
 	taskApi.Put("/", handler.UpdateTask)
 	taskApi.Delete("/:id", handler.DeleteTaskById)
 	taskApi.Put("/status", handler.UpdateTaskStatus)
+	taskApi.Post("/report", handler.)
 }
 
 func initRecordRoute(app *fiber.App, handler *handler.RecordHandler, wg *sync.WaitGroup) {

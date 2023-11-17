@@ -93,3 +93,7 @@ func (t *TaskHandler) UpdateTaskStatus(c *fiber.Ctx) error {
 	}
 	return utils.Ok(c, nil)
 }
+
+func (t *TaskHandler) TaskReport(c *fiber.Ctx) error {
+	return nil
+}

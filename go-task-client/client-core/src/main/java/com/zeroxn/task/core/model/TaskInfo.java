@@ -37,6 +37,10 @@ public class TaskInfo {
      */
     private String params;
     /**
+     * 任务分片参数
+     */
+    private Integer sharding;
+    /**
      * 任务的创建时间
      */
     private LocalDateTime createTime;
