@@ -20,9 +20,9 @@ public class NameProcessorHandler extends AbstractTaskProcessorHandler {
         if (handlerType.equals(HandlerType.FUNC_NAME.getType())) {
             List<? extends Processor> processorList = null;
             if (taskInfo.getTaskType() == 0) {
-                processorList = manager.getClusterProcessorList();
-            } else {
                 processorList = manager.getSingleProcessorList();
+            } else {
+                processorList = manager.getClusterProcessorList();
             }
             if (processorList == null || processorList.isEmpty()) {
                 return null;

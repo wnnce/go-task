@@ -1,7 +1,7 @@
 package ink.task.core;
 
 import ink.task.core.enums.TaskExecuteStatus;
-import com.zeroxn.task.core.model.*;
+import ink.task.core.logging.LoggerLevel;
 import ink.task.core.model.*;
 import ink.task.core.util.GoTaskClient;
 import org.slf4j.Logger;
@@ -34,9 +34,14 @@ public final class TaskRunnerManager {
         // TODO 创建TaskExecuteResult对象 创建GoTaskContext上下文
         final Integer taskId = taskInfo.getId();
         Future<TaskResult> resultFuture = executors.submit(() -> {
+            GoTaskContext context = new GoTaskContext.Builder()
+                    .params(taskInfo.getParams())
+                    .sharding(taskInfo.getSharding())
+                    .logger(ink.task.core.logging.LoggerFactory.getLogger(LoggerLevel.INFO, processor.getClass()))
+                    .build();
             for (int i = 0; i < 3; i++) {
                 try {
-                    return processor.processor(null);
+                    return processor.processor(context);
                 } catch (Exception ex) {
                     logger.warn("处理器方法执行异常，处理器：{}，错误信息：{}", processor.toString(), ex.getMessage());
                 }
@@ -55,6 +60,7 @@ public final class TaskRunnerManager {
 
     private void await(Integer taskId, TaskCache task) {
         CompletableFuture.runAsync(() -> {
+            logger.info(this.find(taskId).toString());
             final Future<TaskResult> future = task.future();
             final TaskExecuteResult executeResult = task.result();
             try {
@@ -77,7 +83,7 @@ public final class TaskRunnerManager {
             }
 //            client.send(executeResult);
             delete(taskId);
-        });
+        }, executors);
     }
     public TaskCache find(Integer taskId) {
         return taskMap.get(taskId);
