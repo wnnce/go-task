@@ -57,7 +57,7 @@ func initTaskRoute(app *fiber.App, handler *handler.TaskHandler, wg *sync.WaitGr
 	taskApi.Put("/", handler.UpdateTask)
 	taskApi.Delete("/:id", handler.DeleteTaskById)
 	taskApi.Put("/status", handler.UpdateTaskStatus)
-	taskApi.Post("/report", handler.)
+	taskApi.Post("/report", handler.TaskReport)
 }
 
 func initRecordRoute(app *fiber.App, handler *handler.RecordHandler, wg *sync.WaitGroup) {
@@ -75,5 +75,6 @@ func initRecordRoute(app *fiber.App, handler *handler.RecordHandler, wg *sync.Wa
 func initWebSocketRoute(app *fiber.App, handler *handler.WebSocketHandler, wg *sync.WaitGroup) {
 	defer wg.Done()
 	log.Info("----------初始化WebSocket router----------")
-	app.Get("/client/registration/ws/:id", websocket.New(handler.WebSocket))
+	app.Get("/node/registration/ws/:id", websocket.New(handler.NodeWebSocket))
+	app.Get("/client/websocket", websocket.New(handler.ClientWebSocket))
 }
