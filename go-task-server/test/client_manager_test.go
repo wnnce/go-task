@@ -17,23 +17,23 @@ func TestClientManager(t *testing.T) {
 		RoundTime: 4,
 	}
 	now := time.Now()
-	clientItem := &common.ClientItem{
+	clientItem := &common.NodeItem{
 		ID:         "123",
 		OnlineTime: &now,
 		Status:     0,
 		TaskClient: client,
 	}
-	common.SaveClient("123", clientItem)
-	cacheClient := common.GetClient("123")
+	common.SaveTaskNode("123", clientItem)
+	cacheClient := common.GetTaskNode("123")
 	if cacheClient != nil {
 		fmt.Printf("%v\n", cacheClient)
 	}
 	cacheClient.Status = 1
 	time.Sleep(time.Second * 10)
 	now = time.Now()
-	cacheClient = common.GetClient("123")
+	cacheClient = common.GetTaskNode("123")
 	fmt.Printf("%v\n", cacheClient)
-	common.DeleteClient("123")
-	cacheClient = common.GetClient("123")
+	common.DeleteTaskNode("123")
+	cacheClient = common.GetTaskNode("123")
 	fmt.Printf("%v\n", cacheClient)
 }
