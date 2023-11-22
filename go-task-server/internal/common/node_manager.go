@@ -13,8 +13,8 @@ type NodeRegi struct {
 }
 
 type TaskNodeInfo struct {
-	UsedCpu     float64 `json:"UsedCpu"`     // CPU使用率
-	TotalMemory int64   `json:"TotalMemory"` // 总内存
+	UsedCpu     float64 `json:"usedCpu"`     // CPU使用率
+	TotalMemory int64   `json:"totalMemory"` // 总内存
 	UsedMemory  int64   `json:"usedMemory"`  // 使用内存
 	TotalDisk   int64   `json:"totalDisk"`   // 总硬盘空间
 	UsedDisk    int64   `json:"usedDisk"`    // 已使用内存空间
@@ -28,18 +28,18 @@ type NodeItem struct {
 	Intervals  uint       `json:"intervals"`  // 实例心跳间隔时间
 	OnlineTime *time.Time `json:"onlineTime"` // 实例的最后在线时间
 	Status     uint       `json:"status"`     // 0：正常 1：离线（超过心跳时间没有发送心跳请求
-	Channel    chan int   `json:"-"`          // 关闭连接的通道
+	Channel    *chan int  `json:"-"`          // 关闭连接的通道
 	roundFunc  func(string, uint)
-	*TaskNodeInfo
+	Info       *TaskNodeInfo `json:"info"` // 任务节点的详细信息
 }
 
 var (
-	taskNodeManager = make(map[string]*NodeItem)
-	mu              sync.Mutex
+	taskNodeCache = make(map[string]*NodeItem)
+	mu            sync.Mutex
 )
 
 func GetTaskNode(key string) *NodeItem {
-	return taskNodeManager[key]
+	return taskNodeCache[key]
 }
 
 func SaveTaskNode(key string, client *NodeItem) {
@@ -74,11 +74,11 @@ func SaveTaskNode(key string, client *NodeItem) {
 	go client.roundFunc(key, client.Intervals)
 	mu.Lock()
 	defer mu.Unlock()
-	taskNodeManager[key] = client
+	taskNodeCache[key] = client
 }
 
 func getTaskNodeOnlineTime(key string) *time.Time {
-	client := taskNodeManager[key]
+	client := taskNodeCache[key]
 	if client == nil {
 		log.Errorf("当前节点不存在，key:%v\n", key)
 		return nil
@@ -89,33 +89,53 @@ func getTaskNodeOnlineTime(key string) *time.Time {
 func UpdateTaskNodeInfo(key string, info *TaskNodeInfo) {
 	mu.Lock()
 	defer mu.Unlock()
-	client, ok := taskNodeManager[key]
+	client, ok := taskNodeCache[key]
 	if !ok {
 		log.Errorf("当前节点不存在，key：%v\n", key)
 		return
 	}
 	now := time.Now()
-	client.TaskNodeInfo = info
+	client.Info = info
 	client.OnlineTime = &now
+	// 推送更新任务节点信息
+	updateTaskNodeInfo(&TaskNodeMessage{
+		Id:         key,
+		OnlineTime: &now,
+		Info:       info,
+	})
 }
 
 func UpdateTaskNodeStatus(key string, status uint) {
 	mu.Lock()
 	defer mu.Unlock()
-	client, ok := taskNodeManager[key]
+	client, ok := taskNodeCache[key]
 	if !ok {
 		log.Errorf("当前节点不存在，key：%v\n", key)
 	}
 	client.Status = status
+	// 推送更新任务节点状态
+	updateTaskNodeInfo(&TaskNodeMessage{
+		Id:     key,
+		Status: status,
+	})
 }
 
 func DeleteTaskNode(key string) {
-	client, ok := taskNodeManager[key]
+	client, ok := taskNodeCache[key]
 	if ok {
 		log.Infof("删除任务节点，key：%v\n", key)
 		mu.Lock()
-		close(client.Channel)
-		delete(taskNodeManager, key)
+		close(*client.Channel)
+		delete(taskNodeCache, key)
 		mu.Unlock()
+		deleteTaskNode(key)
 	}
+}
+
+func listTaskNode() []*NodeItem {
+	values := make([]*NodeItem, 0, len(taskNodeCache))
+	for _, v := range taskNodeCache {
+		values = append(values, v)
+	}
+	return values
 }
