@@ -31,13 +31,13 @@ public final class TaskRunnerManager {
     }
     private TaskRunnerManager() {}
     public <T extends Processor> void execute(T processor, TaskInfo taskInfo) {
-        // TODO 创建TaskExecuteResult对象 创建GoTaskContext上下文
         final Integer taskId = taskInfo.getId();
+        final ink.task.core.logging.Logger taskLogger = ink.task.core.logging.LoggerFactory.getLogger(LoggerLevel.INFO, processor.getClass());
         Future<TaskResult> resultFuture = executors.submit(() -> {
-            GoTaskContext context = new GoTaskContext.Builder()
+            final GoTaskContext context = new GoTaskContext.Builder()
                     .params(taskInfo.getParams())
                     .sharding(taskInfo.getSharding())
-                    .logger(ink.task.core.logging.LoggerFactory.getLogger(LoggerLevel.INFO, processor.getClass()))
+                    .logger(taskLogger)
                     .build();
             for (int i = 0; i < 3; i++) {
                 try {
@@ -52,7 +52,7 @@ public final class TaskRunnerManager {
                 .taskId(taskId)
                 .nodeName(config.getNodeName())
                 .runnerTime(LocalDateTime.now()).build();
-        final TaskCache task = new TaskCache(resultFuture, TaskExecuteStatus.RUNNING, executeResult);
+        final TaskCache task = new TaskCache(resultFuture, TaskExecuteStatus.RUNNING, executeResult, taskLogger);
         taskMap.put(taskId, task);
         this.await(taskId, task);
         logger.info("调用执行完毕，{}", System.currentTimeMillis());
@@ -69,6 +69,7 @@ public final class TaskRunnerManager {
                 executeResult.setStatus(result.getResult() ? 0 : 1);
                 executeResult.setClosingTime(LocalDateTime.now());
                 executeResult.setOutcome(result.getMessage());
+                executeResult.setRunnerLogs(task.logger().getLogsValue());
                 logger.info(result.toString());
             } catch (Exception ex) {
                 logger.info("等待任务执行异常，错误信息：{}", ex.getMessage());
@@ -82,6 +83,7 @@ public final class TaskRunnerManager {
                 executeResult.setOutcome("方法执行异常，错误信息：" + ex.getMessage());
             }
 //            client.send(executeResult);
+            System.out.println(task.logger().getLogsValue());
             delete(taskId);
         }, executors);
     }

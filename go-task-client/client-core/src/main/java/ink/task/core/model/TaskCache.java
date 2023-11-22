@@ -1,6 +1,7 @@
 package ink.task.core.model;
 
 import ink.task.core.enums.TaskExecuteStatus;
+import ink.task.core.logging.Logger;
 import lombok.ToString;
 
 import java.util.concurrent.Future;
@@ -24,10 +25,17 @@ public class TaskCache {
      * 任务返回给服务端的结果
      */
     private final TaskExecuteResult result;
-    public TaskCache(Future<TaskResult> future, TaskExecuteStatus status, TaskExecuteResult result) {
+
+    /**
+     * 任务运行时传递的日志接口类，可以获取日志信息
+     */
+    private final Logger logger;
+    public TaskCache(Future<TaskResult> future, TaskExecuteStatus status, TaskExecuteResult result, Logger logger) {
         this.future = future;
         this.status = status;
         this.result = result;
+        this.logger = logger;
+
     }
     public Future<TaskResult> future() {
         return future;
@@ -38,6 +46,9 @@ public class TaskCache {
     }
     public TaskExecuteResult result() {
         return result;
+    }
+    public Logger logger() {
+        return logger;
     }
 
     public void setStatus(TaskExecuteStatus status) {

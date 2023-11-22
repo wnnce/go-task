@@ -1,9 +1,8 @@
 package ink.task.core.logging;
 
-import java.text.MessageFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.regex.Pattern;
+import java.util.Arrays;
 
 /**
  * @Author: lisang
@@ -20,13 +19,23 @@ public class TaskLogger extends AbstractLogger {
     }
     @Override
     protected String formatLog(LoggerLevel level, String text, Object[] args) {
-        final String[] strings = text.split(Pattern.quote("{}"));
-        final StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < strings.length; i++) {
-            sb.append(strings[i]).append("{").append(i).append("}");
+        int argIndex = 0;
+        int prefixIndex = text.indexOf("{}");
+        StringBuilder stringBuilder = new StringBuilder();
+        while (prefixIndex != -1 && argIndex < args.length) {
+            stringBuilder.append(text, 0, prefixIndex);
+            Object object = args[argIndex++];
+            // 判断是否为数组，默认数组输出内存地址
+            if (object instanceof Object[] objects) {
+                stringBuilder.append(Arrays.toString(objects));
+            } else {
+                stringBuilder.append(object.toString());
+            }
+            text = text.substring(prefixIndex + 2);
+            prefixIndex = text.indexOf("{}");
         }
-        final String message = MessageFormat.format(sb.toString(), args);
-        return this.formatLog(level, message);
+        stringBuilder.append(text);
+        return this.formatLog(level, stringBuilder.toString());
     }
 
     @Override
