@@ -35,7 +35,7 @@ import java.util.concurrent.Executors;
  */
 public final class TaskNodeBootstrap {
     private static final Logger logger = LoggerFactory.getLogger(TaskNodeBootstrap.class);
-    private static final String WS_URI = "/client/registration/ws/{id}?name=%s&intervals=%s&port=%s";
+    private static final String WS_URI = "/node/registration/ws/{id}?name=%s&intervals=%s&port=%s";
     private static final ExecutorService executors = Executors.newFixedThreadPool(2);
     public void start(TaskNodeConfig config) {
         CompletableFuture<Void> clientTask = CompletableFuture.runAsync(() -> {
