@@ -14,10 +14,10 @@ type Message struct {
 
 // TaskNodeMessage 任务节点更新消息
 type TaskNodeMessage struct {
-	Id         string        `json:"id"`                    // 任务节点ID
-	Status     uint          `json:"status,omitempty"`      // 任务节点状态
-	OnlineTime *time.Time    `json:"online_time,omitempty"` // 任务节点的最后在线时间
-	Info       *TaskNodeInfo `json:"info,omitempty"`        // 任务节点的信息
+	Id         string        `json:"id"`                   // 任务节点ID
+	Status     uint          `json:"status,omitempty"`     // 任务节点状态
+	OnlineTime *time.Time    `json:"onlineTime,omitempty"` // 任务节点的最后在线时间
+	Info       *TaskNodeInfo `json:"info,omitempty"`       // 任务节点的信息
 }
 
 type Client struct {
@@ -61,8 +61,20 @@ func DeleteClient(clientId int64) {
 	}
 }
 
+// 任务节点第一次连接时 向所有客户端推送信息
+func pushAddTaskNode(node *NodeItem) {
+	clients := listClient()
+	if len(clients) <= 0 {
+		log.Debug("没有客户端在线，放弃消息推送")
+		return
+	}
+	for _, client := range clients {
+		go sendMessage(client.Con, &Message{AddCode, [1]*NodeItem{node}})
+	}
+}
+
 // 向保存的客户端连接推送更新的任务节点信息
-func updateTaskNodeInfo(message *TaskNodeMessage) {
+func pushUpdateTaskNodeInfo(message *TaskNodeMessage) {
 	clients := listClient()
 	if len(clients) <= 0 {
 		log.Debug("没有客户端在线，放弃消息推送")
@@ -74,7 +86,7 @@ func updateTaskNodeInfo(message *TaskNodeMessage) {
 }
 
 // 推送删除任务节点消息
-func deleteTaskNode(nodeId string) {
+func pushDeleteTaskNode(nodeId string) {
 	clients := listClient()
 	if len(clients) <= 0 {
 		log.Debug("没有客户端在线，放弃消息推送")

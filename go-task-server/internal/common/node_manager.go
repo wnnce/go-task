@@ -42,8 +42,8 @@ func GetTaskNode(key string) *NodeItem {
 	return taskNodeCache[key]
 }
 
-func SaveTaskNode(key string, client *NodeItem) {
-	client.roundFunc = func(key string, roundTime uint) {
+func SaveTaskNode(key string, node *NodeItem) {
+	node.roundFunc = func(key string, roundTime uint) {
 		maxTimeout := time.Second * time.Duration(roundTime)
 		ticker := time.NewTicker(maxTimeout / 2)
 		retryCount := 0
@@ -71,10 +71,11 @@ func SaveTaskNode(key string, client *NodeItem) {
 			}
 		}
 	}
-	go client.roundFunc(key, client.Intervals)
+	go node.roundFunc(key, node.Intervals)
 	mu.Lock()
-	defer mu.Unlock()
-	taskNodeCache[key] = client
+	taskNodeCache[key] = node
+	mu.Unlock()
+	pushAddTaskNode(node)
 }
 
 func getTaskNodeOnlineTime(key string) *time.Time {
@@ -98,7 +99,7 @@ func UpdateTaskNodeInfo(key string, info *TaskNodeInfo) {
 	client.Info = info
 	client.OnlineTime = &now
 	// 推送更新任务节点信息
-	updateTaskNodeInfo(&TaskNodeMessage{
+	pushUpdateTaskNodeInfo(&TaskNodeMessage{
 		Id:         key,
 		OnlineTime: &now,
 		Info:       info,
@@ -114,7 +115,7 @@ func UpdateTaskNodeStatus(key string, status uint) {
 	}
 	client.Status = status
 	// 推送更新任务节点状态
-	updateTaskNodeInfo(&TaskNodeMessage{
+	pushUpdateTaskNodeInfo(&TaskNodeMessage{
 		Id:     key,
 		Status: status,
 	})
@@ -128,7 +129,7 @@ func DeleteTaskNode(key string) {
 		close(*client.Channel)
 		delete(taskNodeCache, key)
 		mu.Unlock()
-		deleteTaskNode(key)
+		pushDeleteTaskNode(key)
 	}
 }
 
