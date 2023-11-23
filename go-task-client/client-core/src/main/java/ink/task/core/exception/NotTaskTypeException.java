@@ -6,7 +6,7 @@ import org.slf4j.LoggerFactory;
 /**
  * @Author: lisang
  * @DateTime: 2023-11-16 15:59:28
- * @Description:
+ * @Description: 任务类型不被处理异常
  */
 public class NotTaskTypeException extends RuntimeException {
     private static final Logger logger = LoggerFactory.getLogger(NotTaskTypeException.class);

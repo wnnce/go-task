@@ -3,6 +3,7 @@ package ink.task.core;
 
 import lombok.Getter;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -12,10 +13,10 @@ import java.util.List;
  */
 @Getter
 public class ProcessorManager {
-    private List<SingleProcessor> singleProcessorList;
-    private List<ClusterProcessor> clusterProcessorList;
+    private Collection<SingleProcessor> singleProcessorList;
+    private Collection<ClusterProcessor> clusterProcessorList;
     private ProcessorManager() {}
-    protected ProcessorManager(List<SingleProcessor> singleProcessorList, List<ClusterProcessor> clusterProcessorList) {
+    public ProcessorManager(Collection<SingleProcessor> singleProcessorList, Collection<ClusterProcessor> clusterProcessorList) {
         this.singleProcessorList = singleProcessorList;
         this.clusterProcessorList = clusterProcessorList;
     }

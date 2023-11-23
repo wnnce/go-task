@@ -23,8 +23,8 @@ public class GoTaskClient {
     private final HttpClient client;
     private final TaskNodeConfig config;
 
-    public GoTaskClient(TaskNodeConfig config) {
-        this.client = HttpClient.newHttpClient();
+    public GoTaskClient(HttpClient client, TaskNodeConfig config) {
+        this.client = client;
         this.config = config;
     }
 

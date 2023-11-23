@@ -3,7 +3,6 @@ package ink.task.core.handler;
 import ink.task.core.model.TaskNodeConfig;
 import ink.task.core.system.ControlInfo;
 import ink.task.core.system.ControlService;
-import ink.task.core.system.ControlServiceFactory;
 import ink.task.core.util.JsonUtils;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.FullHttpResponse;
@@ -19,19 +18,29 @@ import java.util.concurrent.TimeUnit;
 /**
  * @Author: lisang
  * @DateTime: 2023-11-13 14:38:30
- * @Description:
+ * @Description: WebSocket连接处理器
  */
 public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> {
     private static final Logger logger = LoggerFactory.getLogger(WebSocketClientHandler.class);
     private static final ScheduledExecutorService EXECUTOR = Executors.newSingleThreadScheduledExecutor();
-    private final ControlService controlService = ControlServiceFactory.newControlService();
+    private final ControlService controlService;
     private final TaskNodeConfig config;
-    private final WebSocketClientHandshaker handshaker;
+    private WebSocketClientHandshaker handshaker;
     private ChannelPromise handshakeFuture;
 
-    public WebSocketClientHandler(WebSocketClientHandshaker handshaker, TaskNodeConfig config) {
+    public WebSocketClientHandler(ControlService controlService, TaskNodeConfig config) {
+        this.controlService = controlService;
+        this.config = config;
+    }
+
+    public WebSocketClientHandler(ControlService controlService, WebSocketClientHandshaker handshaker, TaskNodeConfig config) {
+        this.controlService = controlService;
         this.handshaker = handshaker;
         this.config = config;
+    }
+
+    public void setHandshaker(WebSocketClientHandshaker handshaker) {
+        this.handshaker = handshaker;
     }
 
     public ChannelFuture handshakeFuture() {
@@ -42,6 +51,11 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
         handshakeFuture = ctx.newPromise();
     }
 
+    /**
+     * 连接建立时调用的方法，定时上传信息续约
+     * @param ctx 连接
+     * @throws Exception 异常
+     */
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         final Channel channel = ctx.channel();
@@ -52,7 +66,6 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         logger.error("WebSocket服务器断开连接");
-        EXECUTOR.shutdownNow();
         throw new WebSocketClientHandshakeException("服务器连接异常");
     }
 
@@ -93,10 +106,16 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
         if (!handshakeFuture.isDone()) {
             handshakeFuture.setFailure(cause);
         }
+        // 关闭连接 停止定时任务
         ctx.close();
-        cause.printStackTrace();
+        EXECUTOR.shutdownNow();
     }
 
+    /**
+     * 定时获取信息向通道内发送
+     * @param channel 连接通道
+     * @throws Exception 异常
+     */
     private void startInfoUpload(Channel channel) throws Exception {
         EXECUTOR.scheduleWithFixedDelay(() -> {
             if (channel.isActive()) {

@@ -8,7 +8,7 @@ import lombok.ToString;
 /**
  * @Author: lisang
  * @DateTime: 2023-11-15 18:09:26
- * @Description:
+ * @Description: 任务处理器的返回结果类
  */
 @Getter
 @NoArgsConstructor
@@ -16,7 +16,7 @@ import lombok.ToString;
 @ToString
 public class TaskResult {
     /**
-     * 任务的执行结果
+     * 任务的执行结果 true：成功 false：失败
      */
     private Boolean result;
     /**

@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 /**
  * @Author: lisang
  * @DateTime: 2023-11-15 20:52:14
- * @Description:
+ * @Description: 任务实体类，包含了任务的运行信息
  */
 
 @Data

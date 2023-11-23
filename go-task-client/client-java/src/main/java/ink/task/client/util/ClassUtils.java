@@ -1,4 +1,4 @@
-package ink.task.core.util;
+package ink.task.client.util;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

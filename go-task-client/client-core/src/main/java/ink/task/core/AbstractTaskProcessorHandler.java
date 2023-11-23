@@ -8,6 +8,10 @@ import ink.task.core.model.TaskInfo;
  * @Description: 任务处理器责任链抽象类
  */
 public abstract class AbstractTaskProcessorHandler {
+    protected final ProcessorManager manager;
+    public AbstractTaskProcessorHandler(ProcessorManager manager) {
+        this.manager = manager;
+    }
     protected AbstractTaskProcessorHandler nextHandler;
 
     public void setNextHandler(AbstractTaskProcessorHandler nextHandler) {

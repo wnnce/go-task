@@ -25,15 +25,15 @@ public final class TaskRunnerManager {
     private final Map<Integer, TaskCache> taskMap = new ConcurrentHashMap<>();
     private GoTaskClient client;
     private TaskNodeConfig config;
-    TaskRunnerManager(TaskNodeConfig config) {
+    public TaskRunnerManager(TaskNodeConfig config, GoTaskClient client) {
         this.config = config;
-        this.client = new GoTaskClient(config);
+        this.client = client;
     }
     private TaskRunnerManager() {}
     public <T extends Processor> void execute(T processor, TaskInfo taskInfo) {
         final Integer taskId = taskInfo.getId();
         final ink.task.core.logging.Logger taskLogger = ink.task.core.logging.LoggerFactory.getLogger(LoggerLevel.INFO, processor.getClass());
-        Future<TaskResult> resultFuture = executors.submit(() -> {
+        Future<TaskResult> future = executors.submit(() -> {
             final GoTaskContext context = new GoTaskContext.Builder()
                     .params(taskInfo.getParams())
                     .sharding(taskInfo.getSharding())
@@ -52,7 +52,7 @@ public final class TaskRunnerManager {
                 .taskId(taskId)
                 .nodeName(config.getNodeName())
                 .runnerTime(LocalDateTime.now()).build();
-        final TaskCache task = new TaskCache(resultFuture, TaskExecuteStatus.RUNNING, executeResult, taskLogger);
+        final TaskCache task = new TaskCache(future, TaskExecuteStatus.RUNNING, executeResult, taskLogger);
         taskMap.put(taskId, task);
         this.await(taskId, task);
         logger.info("调用执行完毕，{}", System.currentTimeMillis());
@@ -69,6 +69,7 @@ public final class TaskRunnerManager {
                 executeResult.setStatus(result.getResult() ? 0 : 1);
                 executeResult.setClosingTime(LocalDateTime.now());
                 executeResult.setOutcome(result.getMessage());
+                logger.info(task.logger().getLogsValue());
                 executeResult.setRunnerLogs(task.logger().getLogsValue());
                 logger.info(result.toString());
             } catch (Exception ex) {
@@ -83,7 +84,6 @@ public final class TaskRunnerManager {
                 executeResult.setOutcome("方法执行异常，错误信息：" + ex.getMessage());
             }
 //            client.send(executeResult);
-            System.out.println(task.logger().getLogsValue());
             delete(taskId);
         }, executors);
     }

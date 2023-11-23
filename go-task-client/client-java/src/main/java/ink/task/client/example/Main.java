@@ -1,25 +1,24 @@
-package ink.task;
+package ink.task.client.example;
 
-import ink.task.core.TaskNodeBootstrap;
-import ink.task.core.TaskProcessorSelector;
-import ink.task.core.model.TaskInfo;
+import ink.task.client.TaskNodeBootstrap;
 import ink.task.core.model.TaskNodeConfig;
-
-import java.time.LocalDateTime;
 
 /**
  * @Author: lisang
- * @DateTime: 2023-11-18 18:11:16
+ * @DateTime: 2023-11-22 16:16:30
  * @Description:
  */
 public class Main {
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         TaskNodeConfig config = new TaskNodeConfig.Builder()
+                // 服务端地址
                 .address("localhost:5400")
+                // 当前节点名称
                 .nodeName("demo")
-                .intervals(10)
+                // 上报信息间隔
+                .intervals(8)
                 .build();
         TaskNodeBootstrap bootstrap = new TaskNodeBootstrap();
-        bootstrap.start(config);
+        bootstrap.start(config).sync();
     }
 }

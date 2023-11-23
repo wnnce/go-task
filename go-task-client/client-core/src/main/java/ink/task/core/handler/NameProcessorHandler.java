@@ -1,10 +1,11 @@
-package ink.task.handler;
+package ink.task.core.handler;
 
 import ink.task.core.*;
 import ink.task.core.enums.HandlerType;
 import ink.task.core.exception.NotHandlerTypeException;
 import ink.task.core.model.TaskInfo;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -13,12 +14,15 @@ import java.util.List;
  * @Description: 通过实现类方法返回的名称选择任务处理类
  */
 public class NameProcessorHandler extends AbstractTaskProcessorHandler {
-    private final ProcessorManager manager = ManagerFactory.newProcessorManager();
+    public NameProcessorHandler(ProcessorManager manager) {
+        super(manager);
+    }
+
     @Override
     public <T extends Processor> T handler(TaskInfo taskInfo) throws Exception {
         final Integer handlerType = taskInfo.getHandlerType();
         if (handlerType.equals(HandlerType.FUNC_NAME.getType())) {
-            List<? extends Processor> processorList = null;
+            Collection<? extends Processor> processorList = null;
             if (taskInfo.getTaskType() == 0) {
                 processorList = manager.getSingleProcessorList();
             } else {

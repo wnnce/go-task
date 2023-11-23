@@ -1,30 +1,32 @@
-package ink.task.handler;
+package ink.task.core.handler;
 
 import ink.task.core.*;
 import ink.task.core.enums.HandlerType;
 import ink.task.core.exception.NotHandlerTypeException;
 import ink.task.core.model.GoTaskContext;
 import ink.task.core.model.TaskInfo;
-import ink.task.core.util.GoTaskClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
+import java.util.Collection;
 import java.util.List;
 
 /**
  * @Author: lisang
  * @DateTime: 2023-11-18 17:59:15
- * @Description: 通过方法注解选择任务任务类
+ * @Description: 通过方法注解选择任务处理类
  */
 public class AnnotationProcessorHandler extends AbstractTaskProcessorHandler {
+    public AnnotationProcessorHandler(ProcessorManager manager) {
+        super(manager);
+    }
     private static final Logger logger = LoggerFactory.getLogger(AnnotationProcessorHandler.class);
-    private final ProcessorManager manager = ManagerFactory.newProcessorManager();
     @Override
     public <T extends Processor> T handler(TaskInfo taskInfo) throws Exception {
         final Integer handlerType = taskInfo.getHandlerType();
         if (handlerType.equals(HandlerType.ANNOTATION.getType())) {
-            List<? extends Processor> processorList = null;
+            Collection<? extends Processor> processorList = null;
             if (taskInfo.getHandlerType() == 0) {
                 processorList = manager.getSingleProcessorList();
             } else {

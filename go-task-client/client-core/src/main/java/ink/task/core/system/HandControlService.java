@@ -17,7 +17,7 @@ import java.util.Enumeration;
 /**
  * @Author: lisang
  * @DateTime: 2023-11-06 10:53:01
- * @Description:
+ * @Description: 系统信息接口实现类
  */
 public class HandControlService extends AbstractControlService{
     private static final Logger logger = LoggerFactory.getLogger(HandControlService.class);

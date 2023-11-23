@@ -3,7 +3,7 @@ package ink.task.core.system;
 /**
  * @Author: lisang
  * @DateTime: 2023-11-06 10:53:37
- * @Description:
+ * @Description: 获取系统信息接口抽象类
  */
 public abstract class AbstractControlService implements ControlService {
     @Override

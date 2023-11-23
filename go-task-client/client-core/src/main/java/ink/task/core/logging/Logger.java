@@ -3,9 +3,13 @@ package ink.task.core.logging;
 /**
  * @Author: lisang
  * @DateTime: 2023-11-18 19:59:55
- * @Description:
+ * @Description: 顶级日志接口
  */
 public interface Logger {
+    /**
+     * 获取本次日志对象保存的所有日志信息 （只保存创建时指定的日志等级（含以上）的日志信息）
+     * @return 返回日志字符串
+     */
     String getLogsValue();
     void debug(String text);
     void debug(String text, Object ...params);

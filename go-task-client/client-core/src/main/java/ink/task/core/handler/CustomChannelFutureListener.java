@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 /**
  * @Author: lisang
  * @DateTime: 2023-11-14 23:38:48
- * @Description:
+ * @Description: 自定义消息发送回调监听器
  */
 public class CustomChannelFutureListener implements ChannelFutureListener {
     private static final Logger logger = LoggerFactory.getLogger(CustomChannelFutureListener.class);

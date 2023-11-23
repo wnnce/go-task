@@ -3,7 +3,7 @@ package ink.task.core.logging;
 /**
  * @Author: lisang
  * @DateTime: 2023-11-18 20:47:25
- * @Description:
+ * @Description: 日志接口工厂类
  */
 public class LoggerFactory {
     public static Logger getLogger(LoggerLevel level, String name) {

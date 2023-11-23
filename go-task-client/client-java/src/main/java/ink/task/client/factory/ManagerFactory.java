@@ -1,10 +1,17 @@
-package ink.task.core;
+package ink.task.client.factory;
 
+import ink.task.core.ClusterProcessor;
+import ink.task.core.ProcessorManager;
+import ink.task.core.SingleProcessor;
+import ink.task.core.TaskRunnerManager;
+import ink.task.core.model.GoTaskContext;
 import ink.task.core.model.TaskNodeConfig;
-import ink.task.core.util.ClassUtils;
+import ink.task.client.util.ClassUtils;
+import ink.task.core.util.GoTaskClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.http.HttpClient;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicReference;
@@ -64,7 +71,8 @@ public final class ManagerFactory {
     public static TaskRunnerManager newRunnerManager(TaskNodeConfig config) {
         TaskRunnerManager runnerManager = runnerManagerReference.get();
         if (runnerManager == null) {
-            TaskRunnerManager newRunnerManager = new TaskRunnerManager(config);
+            final GoTaskClient client = new GoTaskClient(HttpClient.newHttpClient(), config);
+            TaskRunnerManager newRunnerManager = new TaskRunnerManager(config, client);
             if (runnerManagerReference.compareAndSet(null, newRunnerManager)) {
                 runnerManager = newRunnerManager;
             } else {

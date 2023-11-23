@@ -23,7 +23,7 @@ public class TaskNodeConfig {
      */
     private String nodeName;
     /**
-     * 心跳/信息上报时间间隔 单位：毫秒
+     * 心跳/信息上报时间间隔 单位：秒
      */
     private int intervals;
     /**

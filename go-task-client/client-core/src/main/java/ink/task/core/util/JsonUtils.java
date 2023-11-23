@@ -43,6 +43,13 @@ public final class JsonUtils {
         objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
     }
 
+    /**
+     * 反序列化Json字符串
+     * @param json Json字符串
+     * @param clazz 需要返回类的Class类型
+     * @return 返回指定的发序列化类型
+     * @param <T> 泛型 指定的反序列化类型
+     */
     public static <T> T form(String json, Class<T> clazz) {
         try {
             return objectMapper.readValue(json, clazz);
@@ -51,6 +58,12 @@ public final class JsonUtils {
         }
         return null;
     }
+
+    /**
+     * 序列化对象为Json字符串
+     * @param value 需要序列化的对象
+     * @return 返回序列化后的Json字符串
+     */
     public static String to(Object value) {
         try {
             return objectMapper.writeValueAsString(value);

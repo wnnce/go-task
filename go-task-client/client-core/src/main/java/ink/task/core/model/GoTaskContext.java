@@ -9,9 +9,17 @@ import ink.task.core.logging.Logger;
  */
 public class GoTaskContext {
 
+    /**
+     * 任务参数
+     */
     private final String params;
-
+    /**
+     * 任务处理器的分片参数 如果是单机任务则为0,广播任务则是所有任务处理器的索引 不会重复
+     */
     private final int sharding;
+    /**
+     * 日志对象，可以输出日志和获取缓存的日志字符串
+     */
     private final Logger logger;
 
     public GoTaskContext(Builder builder) {

@@ -20,9 +20,9 @@ public class TaskProcessorSelector {
     private static final ExecutorService executors = Executors.newFixedThreadPool(4);
     private final AbstractTaskProcessorHandler taskHandler;
     private final TaskRunnerManager manager;
-    public TaskProcessorSelector(TaskNodeConfig config) {
-        this.taskHandler = TaskProcessHandlerFactory.newTaskHandler();
-        this.manager = ManagerFactory.newRunnerManager(config);
+    public TaskProcessorSelector(TaskRunnerManager manager, AbstractTaskProcessorHandler taskHandler) {
+        this.taskHandler = taskHandler;
+        this.manager = manager;
     }
     public void doSelect(TaskInfo taskInfo) {
         final Integer taskType = taskInfo.getTaskType();

@@ -1,6 +1,8 @@
 package ink.task.core.handler;
 
+import ink.task.core.TaskProcessorSelector;
 import ink.task.core.model.TaskInfo;
+import ink.task.core.model.TaskNodeConfig;
 import ink.task.core.util.JsonUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFuture;
@@ -20,6 +22,11 @@ import org.slf4j.LoggerFactory;
 public final class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
     private static final Logger logger = LoggerFactory.getLogger(HttpServerHandler.class);
     private static final String TASK_URI = "/task/issued";
+    private final TaskProcessorSelector selector;
+
+    public HttpServerHandler(TaskProcessorSelector selector) {
+        this.selector = selector;
+    }
 
     @Override
     public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
@@ -49,8 +56,9 @@ public final class HttpServerHandler extends SimpleChannelInboundHandler<FullHtt
                 if (taskInfo == null) {
                     response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.BAD_REQUEST);
                 } else {
-
                     logger.info(taskInfo.toString());
+                    // 调用select处理任务
+                    selector.doSelect(taskInfo);
                     response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
                 }
             } else {
