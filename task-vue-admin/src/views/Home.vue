@@ -1,51 +1,53 @@
 <script setup lang="ts">
 import CardItem from '@/components/CardItem.vue';
 import type {TableColumnData} from '@arco-design/web-vue';
+import {useTaskNodeStore} from '@/stores/task_node';
+import {computed, onUnmounted} from 'vue';
+import {formatDateTime, formatSize} from '@/assets/script/utils';
 
-interface Example {
-    name: string,
-    address: string,
-    cpuUsage: number,
-    memoryUsage: number,
-    diskUsage: number,
-    pingTime: string
-}
+const taskNodeStore = useTaskNodeStore();
+
+const taskNodeOnlineCount = computed(() => {
+    const taskNodeList = taskNodeStore.taskNodeList;
+    if (taskNodeList && taskNodeList.length > 0) {
+        return  taskNodeList.filter(node => node.status === 0).length;
+    }
+    return 0;
+})
 
 const columns: TableColumnData[] = [
     {
-        title: '实例名称',
+        title: '名称',
         dataIndex: 'name'
     },
     {
-        title: '实例地址',
-        dataIndex: 'address'
+        title: '地址',
+        dataIndex: 'address',
+        align: 'center'
     },
     {
-        title: 'CPU使用率',
-        dataIndex: 'cpuUsage'
+        title: 'CPU',
+        slotName: 'cpuUsed',
+        align: 'center'
     },
     {
-        title: '内存使用率',
-        dataIndex: 'memoryUsage'
+        title: 'Memory',
+        slotName: 'memoryUsed',
+        align: 'center'
     },
     {
-        title: '磁盘使用率',
-        dataIndex: 'diskUsage'
+        title: 'Disk',
+        slotName: 'diskUsed',
+        align: 'center'
     },
     {
         title: '心跳时间',
-        dataIndex: 'pingTime'
-    }
-]
-
-const tableData: Example[] = [
+        slotName: 'time',
+        align: 'center'
+    },
     {
-        name: '单机',
-        address: '127.0.0.1:121321',
-        cpuUsage: 12.7,
-        memoryUsage: 24.3,
-        diskUsage: 12.3,
-        pingTime: '2011-11-11 10:10:10'
+        title: '状态',
+        slotName: 'status'
     }
 ]
 </script>
@@ -66,11 +68,38 @@ const tableData: Example[] = [
                 <CardItem title="近期失败任务数" value="2" color="#FF6347" text-color="white"/>
             </div>
             <div class="show-item mx-2">
-                <CardItem title="实例在线数" value="2" color="#a7f2a7"/>
+                <CardItem title="实例在线数" :value="taskNodeOnlineCount.toString()" color="#a7f2a7"/>
             </div>
         </div>
         <div class="mt-8">
-            <a-table :columns="columns" :data="tableData" />
+            <a-table :columns="columns" :data="taskNodeStore.taskNodeList" :pagination="false">
+                <template #cpuUsed="{ record }">
+                    <span v-if="record.info">
+                        {{record.info.usedCpu.toFixed(2)}} %
+                    </span>
+                </template>
+                <template #memoryUsed="{ record }">
+                    <span v-if="record.info">
+                        {{`${formatSize(record.info.usedMemory)} / ${formatSize(record.info.totalMemory)}`}} GB
+                    </span>
+                </template>
+                <template #diskUsed="{ record }">
+                    <span v-if="record.info">
+                        {{`${formatSize(record.info.usedDisk)} / ${formatSize(record.info.totalDisk)}`}} GB
+                    </span>
+                </template>
+                <template #time="{ record }">
+                    {{formatDateTime(record.onlineTime)}}
+                </template>
+                <template #status="{ record }">
+                    <span v-if="record.status === 0" class="text-green-500">
+                        在线
+                    </span>
+                    <span v-else class="text-red-500">
+                        离线
+                    </span>
+                </template>
+            </a-table>
         </div>
     </div>
 </template>

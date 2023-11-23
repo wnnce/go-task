@@ -15,3 +15,12 @@ export const formatDateTime = (dateTime: string) => {
     const seconds = String(date.getSeconds()).padStart(2, '0');
     return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 }
+
+/**
+ *
+ * @param number
+ */
+export const formatSize = (number: number): number => {
+    const num = (number / 1024 / 1024 / 1024);
+    return Number(num.toFixed(2))
+}

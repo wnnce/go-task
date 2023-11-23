@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import {IconComputer, IconHome, IconMenu, IconUserGroup} from '@arco-design/web-vue/es/icon';
 import Header from '@/components/Header.vue';
-import {computed} from 'vue';
+import {computed, onMounted, onUnmounted} from 'vue';
 import {useRoute} from 'vue-router';
 import router from '@/router';
+import {Msg} from '@/assets/script/common';
+import type {NodeInfo, TaskNode} from '@/stores/task_node';
+import {useTaskNodeStore} from '@/stores/task_node';
 
 interface Menu {
     name: string,
@@ -11,7 +14,23 @@ interface Menu {
     icon: string
 }
 
+interface Message {
+    /**
+     * 消息代码 0：自定义消息 1：新增任务节点消息 2:更新任务节点消息 3：删除任务节点消息
+     */
+    code: number,
+    data: any
+}
+
+interface TaskNodeMessage {
+    id: string,
+    status?: number,
+    onlineTime?: string,
+    info?: NodeInfo
+}
+
 const route = useRoute();
+const taskNodeStore = useTaskNodeStore();
 const menuList: Menu[] =  [
     {
         name: '系统首页',
@@ -41,6 +60,42 @@ const currentPath = computed(() => {
 const handleMenuClick = (path: string) => {
     router.push(path);
 }
+
+const socket = new WebSocket("ws://localhost:5400/client/websocket");
+socket.onopen = () => {
+    console.log('连接成功')
+}
+
+socket.onmessage = event => {
+    const message: Message = JSON.parse(event.data)
+    if (message.code === 0) {
+        Msg.info(message.data)
+    } else if (message.code === 1) {
+        const taskNodeList: TaskNode[] = message.data
+        taskNodeList.forEach(item => taskNodeStore.addTaskNode(item))
+    } else if (message.code === 2) {
+        const nodeMessage: TaskNodeMessage = message.data;
+        if (nodeMessage.status) {
+            taskNodeStore.updateTaskNodeStatus(nodeMessage.id, nodeMessage.status);
+        } else if (nodeMessage.info && nodeMessage.onlineTime) {
+            taskNodeStore.updateTaskNodeInfo(nodeMessage.id, nodeMessage.onlineTime, nodeMessage.info)
+        }
+    } else if (message.code === 3) {
+        const nodeId = message.data;
+        taskNodeStore.deleteTaskNode(nodeId)
+    } else {
+        console.log('return');
+    }
+}
+
+socket.onerror = event => {
+    console.error(event);
+    Msg.error("WebSocket连接失败")
+}
+
+onUnmounted(() => {
+    socket.close();
+})
 </script>
 
 <template>
