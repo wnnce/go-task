@@ -1,11 +1,11 @@
 package ink.task.client.factory;
 
+import ink.task.client.util.ClassUtils;
 import ink.task.core.ClusterProcessor;
 import ink.task.core.ProcessorManager;
 import ink.task.core.SingleProcessor;
 import ink.task.core.TaskRunnerManager;
 import ink.task.core.model.TaskNodeConfig;
-import ink.task.client.util.ClassUtils;
 import ink.task.core.util.GoTaskClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

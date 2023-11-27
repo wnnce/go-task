@@ -1,7 +1,6 @@
 package ink.task.core;
 
 import ink.task.core.exception.NotHandlerTypeException;
-import ink.task.core.model.TaskExecuteResult;
 import ink.task.core.model.TaskInfo;
 import ink.task.core.util.GoTaskClient;
 import org.slf4j.Logger;
