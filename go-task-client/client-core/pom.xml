@@ -6,11 +6,12 @@
     <parent>
         <groupId>com.zeroxn.task</groupId>
         <artifactId>go-task-client</artifactId>
-        <version>1.0-SNAPSHOT</version>
+        <version>1.0.0</version>
     </parent>
 
     <groupId>com.zeroxn.task.core</groupId>
-    <artifactId>client-core</artifactId>
+    <artifactId>go-task-core</artifactId>
+    <version>${client-core.version}</version>
 
     <properties>
         <maven.compiler.source>${jdk.version}</maven.compiler.source>

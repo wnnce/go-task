@@ -6,7 +6,7 @@
 
     <groupId>com.zeroxn.task</groupId>
     <artifactId>go-task-client</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0.0</version>
     <packaging>pom</packaging>
     <modules>
         <module>client-core</module>
@@ -15,6 +15,10 @@
     </modules>
 
     <properties>
+        <client-core.version>1.0.0</client-core.version>
+        <client-java.version>1.0.0</client-java.version>
+        <client-spring-boot-starter.version>1.0.0</client-spring-boot-starter.version>
+
         <jdk.version>17</jdk.version>
         <encoding>UTF-8</encoding>
         <maven.compiler.source>${jdk.version}</maven.compiler.source>
