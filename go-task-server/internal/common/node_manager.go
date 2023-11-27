@@ -133,10 +133,12 @@ func DeleteTaskNode(key string) {
 	}
 }
 
-func listTaskNode() []*NodeItem {
+func ListTaskNodeByStatus(status uint) []*NodeItem {
 	values := make([]*NodeItem, 0, len(taskNodeCache))
 	for _, v := range taskNodeCache {
-		values = append(values, v)
+		if status > 1 || v.Status == status {
+			values = append(values, v)
+		}
 	}
 	return values
 }

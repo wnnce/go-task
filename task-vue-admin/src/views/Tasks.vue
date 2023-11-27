@@ -7,10 +7,18 @@ import type {Page, Task} from '@/server/api';
 import {formatDateTime} from '@/assets/script/utils';
 import {TaskApi} from '@/server/api';
 import {Msg, Not} from '@/assets/script/common';
+import {useTaskNodeStore} from '@/stores/task_node';
 
 export interface Description {
     label: string,
     value: any
+}
+
+export interface TaskExecuteReactive {
+    taskId: number,
+    taskType: number,
+    mode: number,
+    nodeId: string
 }
 
 export interface TaskQueryData {
@@ -31,6 +39,7 @@ export interface OptionalTask {
     handlerName: string,
     params: string,
 }
+const taskNodeStore = useTaskNodeStore();
 
 const taskColumns: TableColumnData[] = [
     {
@@ -89,6 +98,15 @@ const infoModelVisible = ref<boolean>(false);
 const tableLoading = ref<boolean>(false);
 const searchButtonLoading = ref<boolean>(false);
 const taskInfoData = ref<Description[]>();
+
+const taskExecuteVisible = ref(false);
+const taskExecuteButtonLoading = ref(false);
+const taskExecuteForm = reactive<TaskExecuteReactive>({
+    taskId: 0,
+    taskType: 0,
+    mode: 0,
+    nodeId: ''
+})
 
 const queryData = reactive<TaskQueryData>({
     page: 1,
@@ -157,7 +175,6 @@ const handlerSubmit = async () => {
     }else {
         result = await TaskApi.saveTask(editTask);
     }
-    console.log(result);
     submitLoading.value = false;
     if (result.code === 200) {
         const message = editTask.id ? "修改成功" : "添加成功";
@@ -172,6 +189,11 @@ const handlerViewInfo = async (taskId: number) => {
     if (result.code === 200) {
         taskInfoData.value = taskToDescriptions(result.data)
     }
+}
+
+const handlerAddTask = () => {
+    editTask.id = undefined;
+    taskModelVisible.value = true;
 }
 const handlerEditTask = async (taskId: number) => {
     const result = await TaskApi.queryTaskInfo(taskId);
@@ -190,6 +212,39 @@ const handlerDeleteTask = async (taskId: number) => {
         Not.success("删除成功")
         await getTaskPage()
     }
+}
+
+const handlerExecute = async (taskId: number, taskType: number) => {
+    if (taskNodeStore.taskNodeOnlineCount <= 0) {
+        Msg.waring("当前没有在线的任务节点，无法运行任务！")
+        return;
+    }
+    taskExecuteVisible.value = true;
+    taskExecuteForm.taskId = taskId;
+    taskExecuteForm.taskType = taskType;
+}
+
+const submitTask = async () => {
+    if (!taskExecuteForm.taskId) {
+        Msg.error("任务未选择，无法提交");
+        return;
+    }
+    taskExecuteButtonLoading.value = true;
+    const result = await TaskApi.submitTaskExecute(taskExecuteForm)
+    taskExecuteButtonLoading.value = false;
+    if (result.code === 200) {
+        Not.success("提交成功")
+        // 清除输入框信息
+        taskExecuteVisible.value = false;
+        clearTaskForm();
+        taskExecuteButtonLoading.value = false;
+    }
+}
+
+const clearTaskForm = () => {
+    taskExecuteForm.taskId = 0;
+    taskExecuteForm.mode = 0;
+    taskExecuteForm.nodeId = '';
 }
 
 const handlerPageChange = (page: number) => {
@@ -221,6 +276,32 @@ onMounted(() => {
 </script>
 
 <template>
+    <a-modal width="400px" title="执行任务" v-model:visible="taskExecuteVisible" :ok-loading="taskExecuteButtonLoading"
+             @ok="submitTask"
+             @close="clearTaskForm"
+    >
+        <div class="py-4">
+            <p class="text-gray-700">当前任务节点在线数量：{{taskNodeStore.taskNodeOnlineCount}}</p>
+        </div>
+        <div v-if="taskExecuteForm.taskType === 0">
+            <a-select placeholder="任务调度方式" v-model="taskExecuteForm.mode">
+                <a-option :value="0">默认调度</a-option>
+                <a-option :value="1">指定任务节点</a-option>
+            </a-select>
+            <div class="py-4" v-if="taskExecuteForm.mode === 1">
+                <p class="text-gray-800 py-1">执行任务节点:</p>
+                <a-select placeholder="请选择任务节点" v-model="taskExecuteForm.nodeId">
+                    <a-option v-for="node in taskNodeStore.taskNodeOnlineList" :value="node.id">{{`${node.address}（${node.name}）`}}</a-option>
+                </a-select>
+            </div>
+        </div>
+        <div v-else>
+            <p class="font-bold">
+                确定执行广播任务吗？会调用所有任务节点执行，请确保任务节点中存在该任务的对应处理器！
+            </p>
+
+        </div>
+    </a-modal>
     <a-modal :title="editTask.id ? '修改任务' : '添加任务'" title-align="center" v-model:visible="taskModelVisible"
              :footer="false"
              @close="taskRef.resetFields()"
@@ -243,6 +324,7 @@ onMounted(() => {
                     <a-select v-model="editTask.handlerType" placeholder="执行器类型" size="large" style="width: 235px">
                         <a-option :value="0">SpringBean</a-option>
                         <a-option :value="1">Task注解</a-option>
+                        <a-option :value="2">自定义名称</a-option>
                     </a-select>
                 </a-form-item>
             </div>
@@ -286,6 +368,7 @@ onMounted(() => {
                     <a-option :value="0">全部</a-option>
                     <a-option :value="1">Bean</a-option>
                     <a-option :value="2">注解</a-option>
+                    <a-option :value="3">方法</a-option>
                 </a-select>
                 <a-select v-model="queryData.taskType" placeholder="任务类型" size="large" style="width: 120px">
                     <a-option :value="0">全部</a-option>
@@ -312,7 +395,7 @@ onMounted(() => {
             </a-space>
         </div>
         <div>
-            <table-option button-text="添加任务" @add="taskModelVisible = true" @refresh="getTaskPage"/>
+            <table-option button-text="添加任务" @add="handlerAddTask" @refresh="getTaskPage"/>
         </div>
         <div v-if="taskPage">
             <a-table :columns="taskColumns" :data="taskPage.list" :loading="tableLoading"
@@ -324,7 +407,15 @@ onMounted(() => {
                     {{record.taskType === 0 ? '单机执行' : '广播执行'}}
                 </template>
                 <template #handler-type="{ record }">
-                    {{record.handlerType === 0 ? 'SpringBean' : '注解'}}
+                    <span v-if="record.handlerType === 0">
+                        SpringBean
+                    </span>
+                    <span v-if="record.handlerType === 1">
+                        注解
+                    </span>
+                    <span v-if="record.handlerType === 2">
+                        自定义名称
+                    </span>
                 </template>
                 <template #createTime="{ record }">
                     {{formatDateTime(record.createTime)}}
@@ -346,7 +437,7 @@ onMounted(() => {
                 </template>
                 <template #optional="{ record }">
                     <a-space>
-                        <a-button status="success" type="primary" shape="circle">
+                        <a-button status="success" type="primary" shape="circle" @click="handlerExecute(record.id, record.taskType)">
                             <template #icon>
                                 <icon-play-arrow/>
                             </template>

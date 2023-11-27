@@ -1,8 +1,9 @@
 package ink.task.core.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
 
-import java.time.LocalDateTime;
+import java.util.Date;
 
 /**
  * @Author: lisang
@@ -17,9 +18,13 @@ import java.time.LocalDateTime;
 @Builder
 public class TaskInfo {
     /**
-     * 任务ID
+     * 任务Id
      */
-    private Integer id;
+    private Integer taskId;
+    /**
+     * 运行记录Id
+     */
+    private Integer recordId;
     /**
      * 任务类型 0：单机执行 1：广播执行
      */
@@ -43,5 +48,6 @@ public class TaskInfo {
     /**
      * 任务的创建时间
      */
-    private LocalDateTime createTime;
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone = "GMT+8")
+    private Date createTime;
 }

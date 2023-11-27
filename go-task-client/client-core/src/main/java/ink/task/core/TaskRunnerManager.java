@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.*;
 
@@ -31,7 +32,19 @@ public final class TaskRunnerManager {
     }
     private TaskRunnerManager() {}
     public <T extends Processor> void execute(T processor, TaskInfo taskInfo) {
-        final Integer taskId = taskInfo.getId();
+        // 任务处理器为空的处理逻辑
+        if (processor == null) {
+            final TaskExecuteResult result = TaskExecuteResult.builder()
+                    .taskId(taskInfo.getTaskId())
+                    .recordId(taskInfo.getRecordId())
+                    .status(1)
+                    .outcome("找不到任务处理器")
+                    .nodeName(config.getNodeName())
+                    .build();
+            client.send(result);
+            return;
+        }
+        final Integer taskId = taskInfo.getTaskId();
         final ink.task.core.logging.Logger taskLogger = ink.task.core.logging.LoggerFactory.getLogger(LoggerLevel.INFO, processor.getClass());
         Future<TaskResult> future = executors.submit(() -> {
             final GoTaskContext context = new GoTaskContext.Builder()
@@ -39,27 +52,33 @@ public final class TaskRunnerManager {
                     .sharding(taskInfo.getSharding())
                     .logger(taskLogger)
                     .build();
+            String errMessage = "";
             for (int i = 0; i < 3; i++) {
+                if (i > 0) {
+                    // 任务重试时清空日志上一次执行保存的日志信息
+                    taskLogger.clearLogsValue();
+                }
                 try {
                     return processor.processor(context);
                 } catch (Exception ex) {
+                    errMessage = ex.getMessage();
                     logger.warn("处理器方法执行异常，处理器：{}，错误信息：{}", processor.toString(), ex.getMessage());
                 }
             }
-            return new TaskResult(false, "处理器方法执行异常");
+            return new TaskResult(false, "处理器方法执行异常，错误信息：" + errMessage);
         });
         final TaskExecuteResult executeResult = TaskExecuteResult.builder()
                 .taskId(taskId)
+                .recordId(taskInfo.getRecordId())
                 .nodeName(config.getNodeName())
-                .runnerTime(LocalDateTime.now()).build();
+                .runnerTime(new Date()).build();
         final TaskCache task = new TaskCache(future, TaskExecuteStatus.RUNNING, executeResult, taskLogger);
         taskMap.put(taskId, task);
         this.await(taskId, task);
-        logger.info("调用执行完毕，{}", System.currentTimeMillis());
     }
 
     private void await(Integer taskId, TaskCache task) {
-        CompletableFuture.runAsync(() -> {
+        executors.submit(() -> {
             logger.info(this.find(taskId).toString());
             final Future<TaskResult> future = task.future();
             final TaskExecuteResult executeResult = task.result();
@@ -67,23 +86,21 @@ public final class TaskRunnerManager {
                 final TaskResult result = future.get();
                 task.setStatus(TaskExecuteStatus.SUCCESS);
                 executeResult.setStatus(result.getResult() ? 0 : 1);
-                executeResult.setClosingTime(LocalDateTime.now());
+                executeResult.setClosingTime(new Date());
                 executeResult.setOutcome(result.getMessage());
-                logger.info(task.logger().getLogsValue());
                 executeResult.setRunnerLogs(task.logger().getLogsValue());
-                logger.info(result.toString());
             } catch (Exception ex) {
                 logger.info("等待任务执行异常，错误信息：{}", ex.getMessage());
                 task.setStatus(TaskExecuteStatus.ANOMALY);
-                executeResult.setClosingTime(LocalDateTime.now());
+                executeResult.setClosingTime(new Date());
                 if (!future.isDone() || !future.isCancelled()) {
                     future.cancel(true);
                 }
-                executeResult.setClosingTime(LocalDateTime.now());
+                executeResult.setClosingTime(new Date());
                 executeResult.setStatus(1);
                 executeResult.setOutcome("方法执行异常，错误信息：" + ex.getMessage());
             }
-//            client.send(executeResult);
+            client.send(executeResult);
             delete(taskId);
         }, executors);
     }
@@ -122,5 +139,9 @@ public final class TaskRunnerManager {
         }
         logger.warn("任务运行中，删除任务失败");
         return false;
+    }
+
+    public void shutdownExecutor() {
+        executors.shutdown();
     }
 }

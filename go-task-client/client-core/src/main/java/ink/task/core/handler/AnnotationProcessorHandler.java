@@ -1,6 +1,9 @@
 package ink.task.core.handler;
 
-import ink.task.core.*;
+import ink.task.core.AbstractTaskProcessorHandler;
+import ink.task.core.GoTask;
+import ink.task.core.Processor;
+import ink.task.core.ProcessorManager;
 import ink.task.core.enums.HandlerType;
 import ink.task.core.exception.NotHandlerTypeException;
 import ink.task.core.model.GoTaskContext;
@@ -10,7 +13,6 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
 import java.util.Collection;
-import java.util.List;
 
 /**
  * @Author: lisang
@@ -27,7 +29,7 @@ public class AnnotationProcessorHandler extends AbstractTaskProcessorHandler {
         final Integer handlerType = taskInfo.getHandlerType();
         if (handlerType.equals(HandlerType.ANNOTATION.getType())) {
             Collection<? extends Processor> processorList = null;
-            if (taskInfo.getHandlerType() == 0) {
+            if (taskInfo.getTaskType() == 0) {
                 processorList = manager.getSingleProcessorList();
             } else {
                 processorList = manager.getClusterProcessorList();

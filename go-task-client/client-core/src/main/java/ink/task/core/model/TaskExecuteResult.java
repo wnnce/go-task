@@ -1,8 +1,10 @@
 package ink.task.core.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 
 /**
  * @Author: lisang
@@ -20,13 +22,19 @@ public class TaskExecuteResult {
      */
     private Integer taskId;
     /**
+     * 运行记录Id
+     */
+    private Integer recordId;
+    /**
      * 任务的运行时间
      */
-    private LocalDateTime runnerTime;
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ssXXX", timezone = "GMT+8")
+    private Date runnerTime;
     /**
      * 任务的结束时间
      */
-    private LocalDateTime closingTime;
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ssXXX", timezone = "GMT+8")
+    private Date closingTime;
     /**
      * 任务的运行结果 0:成功 1：失败
      */

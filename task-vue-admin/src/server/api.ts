@@ -1,5 +1,5 @@
 import {sendDelete, sendGet, sendPost, sendPut} from '@/server/request';
-import type {OptionalTask, TaskQueryData} from '@/views/Tasks.vue';
+import type {OptionalTask, TaskExecuteReactive, TaskQueryData} from '@/views/Tasks.vue';
 import type {RecordQueryData} from '@/views/Records.vue';
 
 export interface Page<T> {
@@ -87,6 +87,9 @@ export class TaskApi {
     static async updateTaskStatus(taskId: number, status: number) {
         return sendPut<void>("/task/status", {id: taskId, status: status});
     }
+    static async submitTaskExecute(executeParams: TaskExecuteReactive) {
+        return sendPost<void>("/task/execute", undefined, executeParams)
+    }
 
     static async getTaskList(query: TaskQueryData) {
         const condition = {
@@ -121,6 +124,6 @@ export class TaskLogApi {
         return sendGet<TaskLog[]>(`/record/logs/list/${recordId}`)
     }
     static async getLogInfo(logId: number) {
-        return sendGet<TaskLog>(`/record/logs${logId}`)
+        return sendGet<TaskLog>(`/record/logs/${logId}`)
     }
 }

@@ -56,8 +56,9 @@ public class GoTaskConfigurations {
     }
     static class SelectorConfiguration {
         @Bean
-        TaskProcessorSelector processorSelector(TaskRunnerManager manager, AbstractTaskProcessorHandler taskHandler) {
-            return new TaskProcessorSelector(manager, taskHandler);
+        TaskProcessorSelector processorSelector(TaskRunnerManager manager, AbstractTaskProcessorHandler taskHandler,
+                                                GoTaskClient client) {
+            return new TaskProcessorSelector(manager, taskHandler, client);
         }
     }
     static class ManagerConfiguration {

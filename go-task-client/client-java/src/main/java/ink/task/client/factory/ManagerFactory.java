@@ -4,7 +4,6 @@ import ink.task.core.ClusterProcessor;
 import ink.task.core.ProcessorManager;
 import ink.task.core.SingleProcessor;
 import ink.task.core.TaskRunnerManager;
-import ink.task.core.model.GoTaskContext;
 import ink.task.core.model.TaskNodeConfig;
 import ink.task.client.util.ClassUtils;
 import ink.task.core.util.GoTaskClient;

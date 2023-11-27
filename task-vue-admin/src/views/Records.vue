@@ -144,6 +144,7 @@ const getRecordPage = async () => {
     }
 }
 const handlerRecordInfo = async (recordId: number) => {
+    console.log(recordId);
     infoModelVisible.value = true;
     const result = await RecordApi.queryRecordInfo(recordId);
     if (result.code === 200) {
@@ -222,10 +223,10 @@ onMounted(() => {
                     任务ID：{{recordLogInfo.taskId}}
                 </div>
                 <div class="text-gray-600">
-                    运行时间：{{recordLogInfo.createTime}}
+                    运行时间：{{formatDateTime(recordLogInfo.createTime)}}
                 </div>
             </div>
-            <div class="radius-md bg-gray-100 p-4 text-gray-800 mt-2">
+            <div class="radius-md bg-gray-100 p-4 text-gray-800 mt-2 whitespace-pre-line">
                 {{recordLogInfo.content}}
             </div>
         </div>
@@ -242,7 +243,8 @@ onMounted(() => {
                  class="border-b hover:cursor-pointer hover:border-b-sky-400 transition"
                  @click="handlerLogInfo(item.id)"
             >
-                {{`${index}、${item.createTime}`}}}
+                <span>运行日志{{index + 1}}</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                <span>运行时间：{{formatDateTime(item.createTime)}}</span>
             </div>
             <div v-else class="py-2">
                 <a-empty description="还没有日志" />

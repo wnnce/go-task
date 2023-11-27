@@ -2,18 +2,9 @@
 import CardItem from '@/components/CardItem.vue';
 import type {TableColumnData} from '@arco-design/web-vue';
 import {useTaskNodeStore} from '@/stores/task_node';
-import {computed, onUnmounted} from 'vue';
 import {formatDateTime, formatSize} from '@/assets/script/utils';
 
 const taskNodeStore = useTaskNodeStore();
-
-const taskNodeOnlineCount = computed(() => {
-    const taskNodeList = taskNodeStore.taskNodeList;
-    if (taskNodeList && taskNodeList.length > 0) {
-        return  taskNodeList.filter(node => node.status === 0).length;
-    }
-    return 0;
-})
 
 const columns: TableColumnData[] = [
     {
@@ -68,7 +59,7 @@ const columns: TableColumnData[] = [
                 <CardItem title="近期失败任务数" value="2" color="#FF6347" text-color="white"/>
             </div>
             <div class="show-item mx-2">
-                <CardItem title="实例在线数" :value="taskNodeOnlineCount.toString()" color="#a7f2a7"/>
+                <CardItem title="实例在线数" :value="taskNodeStore.taskNodeOnlineCount.toString()" color="#a7f2a7"/>
             </div>
         </div>
         <div class="mt-8">

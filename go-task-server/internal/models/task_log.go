@@ -3,7 +3,7 @@ package models
 import "time"
 
 type TaskLog struct {
-	ID         int        `json:"id" xorm:"id pk"`
+	ID         int        `json:"id" xorm:"id pk autoincr"`
 	TaskId     int        `json:"taskId"`
 	RecordId   int        `json:"recordId"`
 	Content    string     `json:"content"`

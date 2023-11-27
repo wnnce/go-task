@@ -112,7 +112,7 @@ func (t *TaskRepositoryImpl) handlerPageSession(session *xorm.Session, query *mo
 	if len(query.Name) > 0 {
 		session.And("name like ?", "%"+query.Name+"%")
 	}
-	if query.HandlerType > 0 && query.HandlerType < 3 {
+	if query.HandlerType > 0 && query.HandlerType < 4 {
 		session.And("handler_type = ?", query.HandlerType-1)
 	}
 	if query.TaskType > 0 && query.TaskType < 3 {

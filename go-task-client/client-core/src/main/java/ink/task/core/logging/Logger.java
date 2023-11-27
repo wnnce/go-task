@@ -11,6 +11,11 @@ public interface Logger {
      * @return 返回日志字符串
      */
     String getLogsValue();
+
+    /**
+     * 清空已经保存的所有日志信息
+     */
+    void clearLogsValue();
     void debug(String text);
     void debug(String text, Object ...params);
     void info(String text);

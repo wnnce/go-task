@@ -7,26 +7,21 @@ import ink.task.core.model.TaskResult;
 
 /**
  * @Author: lisang
- * @DateTime: 2023-11-22 16:10:57
- * @Description: 单机处理器实现
+ * @DateTime: 2023-11-27 15:35:41
+ * @Description:
  */
-public class FuncNameProcessor implements SingleProcessor {
+public class HotTaskProcessor implements SingleProcessor {
     @Override
     public TaskResult processor(GoTaskContext context) throws Exception {
         Logger logger = context.logger();
-        // 任务参数
-        System.out.println(context.params());
-        logger.info("这是一段日志");
+        logger.info("任务开始运行");
         Thread.sleep(5000);
-        return new TaskResult(true, "success");
+        logger.info("任务运行结束");
+        return new TaskResult(true, "执行完成");
     }
 
-    /**
-     * 通过方法返回值查找任务处理器
-     * @return 返回任务处理器名称
-     */
     @Override
     public String singleProcessorName() {
-        return "funcName";
+        return "hotProcessor";
     }
 }

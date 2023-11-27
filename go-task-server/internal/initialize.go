@@ -12,6 +12,8 @@ import (
 )
 
 func InitProject(app *fiber.App, engine *xorm.Engine) {
+	nodeSelect := service.NewTaskNodeSelect()
+
 	log.Info("----------初始化repository----------")
 	userRepository := repository.NewUserRepository(engine)
 	taskRepository := repository.NewTaskRepository(engine)
@@ -19,8 +21,9 @@ func InitProject(app *fiber.App, engine *xorm.Engine) {
 	logRepository := repository.NewTaskLogRepository(engine)
 	log.Info("----------初始化service----------")
 	userService := service.NewUserService(userRepository)
-	taskService := service.NewTaskService(taskRepository)
 	recordService := service.NewRecordService(recordRepository, logRepository)
+	runner := service.NewRunnerManager(recordService, nodeSelect)
+	taskService := service.NewTaskService(taskRepository, runner, recordService)
 	log.Info("----------初始化handler----------")
 	userHandler := handler.NewUserHandler(userService)
 	taskHandler := handler.NewTaskHandler(taskService)
@@ -57,6 +60,7 @@ func initTaskRoute(app *fiber.App, handler *handler.TaskHandler, wg *sync.WaitGr
 	taskApi.Put("/", handler.UpdateTask)
 	taskApi.Delete("/:id", handler.DeleteTaskById)
 	taskApi.Put("/status", handler.UpdateTaskStatus)
+	taskApi.Post("/execute", handler.TaskExecuteSubmit)
 	taskApi.Post("/report", handler.TaskReport)
 }
 

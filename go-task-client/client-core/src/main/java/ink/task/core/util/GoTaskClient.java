@@ -29,6 +29,23 @@ public class GoTaskClient {
     }
 
     /**
+     * 发送任务执行异常消息
+     * @param taskId 任务ID
+     * @param recordId 运行记录ID
+     * @param exceptionMessage 异常信息
+     */
+    public void sendException(Integer taskId, Integer recordId, String exceptionMessage) {
+        final TaskExecuteResult result = TaskExecuteResult.builder()
+                .taskId(taskId)
+                .recordId(recordId)
+                .status(1)
+                .outcome(exceptionMessage)
+                .nodeName(config.getNodeName())
+                .build();
+        this.send(result);
+    }
+
+    /**
      * 发送上报调度中心的统一请求
      * @param result 任务运行结果
      */
@@ -39,8 +56,7 @@ public class GoTaskClient {
         HttpRequest request = this.builderRequest(result);
         CompletableFuture<HttpResponse<String>> requestFuture = client.sendAsync(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
         requestFuture.thenAccept(res -> {
-            logger.info(String.valueOf(res.statusCode()));
-            logger.info(String.valueOf(res.body()));
+            logger.info("发送任务结果成功，响应内容：{}", String.valueOf(res.body()));
         });
     }
 

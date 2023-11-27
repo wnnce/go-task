@@ -14,6 +14,9 @@ public enum HandlerType {
      * 注解执行器
      */
     ANNOTATION(1),
+    /**
+     * 接口方法返回名称
+     */
     FUNC_NAME(2);
     private final int type;
     HandlerType(int type) {

@@ -78,19 +78,19 @@ public final class ClassUtils {
         return implClasses;
     }
     private static List<String> getClassPaths(Class<?> clazz) {
-        String basePackagePath = clazz.getClassLoader().getResource("").getPath();
+        String basePackagePath = Thread.currentThread().getContextClassLoader().getResource("").getPath();
         File[] files = new File(basePackagePath).listFiles();
         List<String> classPaths = new ArrayList<>();
         if (files != null) {
             for (File file : files) {
-                listPackages(file.getName(), classPaths);
+                listPackages(clazz, file.getName(), classPaths);
             }
         }
         return classPaths;
     }
 
-    private static void listPackages(String basePackagePath, List<String> classNames) {
-        URL resource = ClassUtils.class.getClassLoader().getResource("./" + basePackagePath.replaceAll("\\.", "/"));
+    private static void listPackages(Class<?> clazz , String basePackagePath, List<String> classNames) {
+        URL resource = clazz.getClassLoader().getResource("./" + basePackagePath.replaceAll("\\.", "/"));
         if (resource == null) {
             return;
         }
@@ -101,7 +101,7 @@ public final class ClassUtils {
         }
         for (File file : files) {
             if (file.isDirectory()) {
-                listPackages(basePackagePath + "." + file.getName(), classNames);
+                listPackages(clazz, basePackagePath + "." + file.getName(), classNames);
             } else {
                 String className = file.getName();
                 if (className.endsWith(".class")) {

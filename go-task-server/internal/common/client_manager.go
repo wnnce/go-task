@@ -42,7 +42,7 @@ func SaveClient(clientId int64, con *websocket.Conn, channel *chan int) {
 	clientMu.Lock()
 	clientCache[clientId] = &Client{con, channel}
 	clientMu.Unlock()
-	nodes := listTaskNode()
+	nodes := ListTaskNodeByStatus(2)
 	if len(nodes) > 0 {
 		sendMessage(con, &Message{AddCode, nodes})
 	}

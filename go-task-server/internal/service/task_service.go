@@ -1,6 +1,7 @@
 package service
 
 import (
+	"github.com/gofiber/fiber/v2/log"
 	"go-task-server/internal/common"
 	"go-task-server/internal/models"
 	"go-task-server/internal/repository"
@@ -13,15 +14,21 @@ type TaskService interface {
 	UpdateTask(task *models.Task) error
 	DeleteTaskById(taskId int) error
 	UpdateTaskStatus(taskId, status int) error
+	ExecuteTask(taskId, mode int, nodeId string) error
+	HandlerTaskResult(result *models.TaskExecuteResult)
 }
 
 type TaskServiceImpl struct {
-	taskRepo repository.TaskRepository
+	taskRepo      repository.TaskRepository
+	recordService RecordService
+	runner        RunnerManager
 }
 
-func NewTaskService(taskRepo repository.TaskRepository) TaskService {
+func NewTaskService(taskRepo repository.TaskRepository, runner RunnerManager, recordService RecordService) TaskService {
 	return &TaskServiceImpl{
-		taskRepo: taskRepo,
+		taskRepo:      taskRepo,
+		runner:        runner,
+		recordService: recordService,
 	}
 }
 
@@ -71,4 +78,57 @@ func (t *TaskServiceImpl) UpdateTaskStatus(taskId, status int) error {
 		return common.NewCustomError(500, "更新任务状态失败")
 	}
 	return nil
+}
+
+func (t *TaskServiceImpl) ExecuteTask(taskId, mode int, nodeId string) error {
+	taskInfo, err := t.QueryTaskInfo(taskId)
+	if err != nil {
+		return err
+	}
+	if mode == 1 {
+		taskNode := common.GetTaskNode(nodeId)
+		if taskNode == nil {
+			return common.NewCustomError(400, "任务节点不存在")
+		}
+		if taskNode.Status == 1 {
+			return common.NewCustomError(400, "任务节点状态异常")
+		}
+	}
+	ok := t.runner.RunnerTask(taskInfo, mode, nodeId)
+	if !ok {
+		return common.NewCustomError(500, "任务运行失败，超出任务缓存的最大容量")
+	}
+	return nil
+}
+
+func (t *TaskServiceImpl) HandlerTaskResult(result *models.TaskExecuteResult) {
+	status := 0
+	if result.Status == 1 {
+		status = 3
+	}
+	record := &models.Record{
+		ID:            result.RecordId,
+		Status:        uint(status),
+		RunnerTime:    result.RunnerTime,
+		StopTime:      result.ClosingTime,
+		ResultContent: result.Outcome,
+	}
+	err := t.recordService.UpdateRecord(record)
+	if err != nil {
+		log.Error("更新任务运行记录失败，放弃日志写入")
+	} else {
+		// 没有日志信息就不保存空日志
+		if len(result.RunnerLogs) <= 0 {
+			return
+		}
+		resultLog := &models.TaskLog{
+			TaskId:   result.TaskId,
+			RecordId: result.RecordId,
+			Content:  result.RunnerLogs,
+		}
+		err = t.recordService.AddRecordLog(resultLog)
+		if err != nil {
+			log.Error("添加任务运行日志失败")
+		}
+	}
 }

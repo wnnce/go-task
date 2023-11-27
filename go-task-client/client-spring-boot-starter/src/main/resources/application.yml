@@ -1,0 +1,7 @@
+go-task:
+  node-name: spring-demo
+  address: localhost:5400
+  port: 24556
+logging:
+  level:
+    ink.task: debug

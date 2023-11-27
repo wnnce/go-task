@@ -1,6 +1,7 @@
 package ink.task.core.model;
 
-import lombok.*;
+import lombok.Getter;
+import lombok.ToString;
 
 /**
  * @Author: lisang

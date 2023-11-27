@@ -66,6 +66,7 @@ public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         logger.error("WebSocket服务器断开连接");
+        ctx.channel().closeFuture();
         throw new WebSocketClientHandshakeException("服务器连接异常");
     }
 

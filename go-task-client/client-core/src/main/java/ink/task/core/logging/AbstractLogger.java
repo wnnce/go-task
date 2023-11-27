@@ -28,6 +28,11 @@ public abstract class AbstractLogger implements Logger{
     }
 
     @Override
+    public void clearLogsValue() {
+        logsCache.setLength(0);
+    }
+
+    @Override
     public void debug(String text) {
         logger.debug(text);
         final String log = this.formatLog(LoggerLevel.DEBUG, text);

@@ -30,6 +30,12 @@ export const useTaskNodeStore = defineStore('taskNode', () => {
     const taskNodeList = computed((): TaskNode[] => {
         return  Array.from(taskNodeCache.value.values());
     })
+    const taskNodeOnlineList = computed((): TaskNode[] => {
+        return Array.from(taskNodeCache.value.values()).filter(node => node.status === 0);
+    })
+    const taskNodeOnlineCount = computed(() :number => {
+        return taskNodeOnlineList.value.length;
+    })
 
     function addTaskNode(node: TaskNode) {
         taskNodeCache.value.set(node.id, node)
@@ -56,5 +62,5 @@ export const useTaskNodeStore = defineStore('taskNode', () => {
         taskNodeCache.value.delete(nodeId);
     }
 
-    return {taskNodeList, addTaskNode, updateTaskNodeInfo, updateTaskNodeStatus, deleteTaskNode}
+    return {taskNodeList, taskNodeOnlineList, taskNodeOnlineCount, addTaskNode, updateTaskNodeInfo, updateTaskNodeStatus, deleteTaskNode}
 })

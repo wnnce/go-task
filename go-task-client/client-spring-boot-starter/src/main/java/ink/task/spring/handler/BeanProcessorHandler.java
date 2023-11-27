@@ -4,9 +4,7 @@ import ink.task.core.*;
 import ink.task.core.enums.HandlerType;
 import ink.task.core.exception.NotHandlerTypeException;
 import ink.task.core.model.TaskInfo;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.stereotype.Component;
 
 /**
  * @Author: lisang

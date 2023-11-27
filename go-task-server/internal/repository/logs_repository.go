@@ -7,6 +7,7 @@ import (
 )
 
 type TaskLogRepository interface {
+	SaveTaskLog(taskLog *models.TaskLog) int64
 	ListTaskLogByRecordId(recordId int) (*[]models.TaskLog, error)
 	QueryTaskLogInfo(logId int) *models.TaskLog
 	DeleteTaskLogByRecordId(recordId int) int64
@@ -22,9 +23,17 @@ func NewTaskLogRepository(engine *xorm.Engine) TaskLogRepository {
 	}
 }
 
+func (t *TaskLogRepositoryImpl) SaveTaskLog(taskLog *models.TaskLog) int64 {
+	insert, err := t.engine.Insert(taskLog)
+	if err != nil {
+		log.Errorf("日志添加失败，错误信息：%v\n", err)
+	}
+	return insert
+}
+
 func (t *TaskLogRepositoryImpl) ListTaskLogByRecordId(recordId int) (*[]models.TaskLog, error) {
 	recordLogs := make([]models.TaskLog, 0)
-	err := t.engine.Cols("id", "task_id", "record_id", "create_time").Where("record_id = ?", recordId).Find(recordLogs)
+	err := t.engine.Cols("id", "task_id", "record_id", "create_time").Where("record_id = ?", recordId).Find(&recordLogs)
 	if err != nil {
 		log.Errorf("查询日志列表失败，错误信息：%v\n", err)
 		return nil, err

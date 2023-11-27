@@ -94,6 +94,26 @@ func (t *TaskHandler) UpdateTaskStatus(c *fiber.Ctx) error {
 	return utils.Ok(c, nil)
 }
 
+func (t *TaskHandler) TaskExecuteSubmit(c *fiber.Ctx) error {
+	executeParams := &models.ExecuteDto{}
+	err := c.BodyParser(executeParams)
+	if err != nil || (executeParams.Mode < 0 || executeParams.Mode > 1) {
+		return utils.FailRequest(c, "请求参数错误")
+	}
+	err = t.taskService.ExecuteTask(executeParams.TaskId, executeParams.Mode, executeParams.NodeId)
+	if err != nil {
+		return utils.Fail(c, err)
+	}
+	return utils.Ok(c, nil)
+}
+
 func (t *TaskHandler) TaskReport(c *fiber.Ctx) error {
-	return nil
+	result := &models.TaskExecuteResult{}
+	err := c.BodyParser(result)
+	if err != nil {
+		log.Error(err)
+		return utils.FailRequest(c, "请求参数错误")
+	}
+	t.taskService.HandlerTaskResult(result)
+	return utils.Ok(c, nil)
 }
