@@ -1,5 +1,6 @@
 package ink.task.spring;
 
+import ink.task.core.TaskProcessorSelector;
 import ink.task.core.handler.HttpServerHandler;
 import ink.task.core.handler.WebSocketClientHandler;
 import ink.task.core.model.TaskNodeConfig;
@@ -40,16 +41,16 @@ public class BootstrapRunner implements ApplicationRunner, DisposableBean {
     private static final Logger logger = LoggerFactory.getLogger(BootstrapRunner.class);
     private static final String WS_URI = "/node/registration/ws/{id}?name=%s&intervals=%s&port=%s";
     private final TaskNodeConfig config;
-    private final HttpServerHandler serverHandler;
+    private final TaskProcessorSelector selector;
     private final WebSocketClientHandler clientHandler;
     private final NioEventLoopGroup bossGroup;
     private final NioEventLoopGroup workerGroup;
     private final NioEventLoopGroup clientGroup;
     private Channel serverChannel;
     private Channel clientChannel;
-    public BootstrapRunner(TaskNodeConfig config, HttpServerHandler serverHandler, WebSocketClientHandler clientHandler) {
+    public BootstrapRunner(TaskNodeConfig config, TaskProcessorSelector selector, WebSocketClientHandler clientHandler) {
         this.config = config;
-        this.serverHandler = serverHandler;
+        this.selector = selector;
         this.clientHandler = clientHandler;
         this.bossGroup = config.isSingleMain() ? new NioEventLoopGroup(1) : new NioEventLoopGroup();
         this.workerGroup = new NioEventLoopGroup();
@@ -114,7 +115,7 @@ public class BootstrapRunner implements ApplicationRunner, DisposableBean {
                         pipeline.addLast(new HttpResponseEncoder())
                                 .addLast(new HttpRequestDecoder())
                                 .addLast("httpAggregator", new HttpObjectAggregator(1024 * 1024))
-                                .addLast(serverHandler);
+                                .addLast(new HttpServerHandler(selector));
                     }
                 });
         ChannelFuture cf = bootstrap.bind(config.getPort()).sync();

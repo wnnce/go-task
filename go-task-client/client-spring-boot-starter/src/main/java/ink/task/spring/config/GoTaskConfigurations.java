@@ -40,15 +40,11 @@ public class GoTaskConfigurations {
         }
 
         @Bean
-        BootstrapRunner bootstrapRunner(TaskNodeConfig config, HttpServerHandler serverHandler, WebSocketClientHandler clientHandler) {
-            return new BootstrapRunner(config, serverHandler, clientHandler);
+        BootstrapRunner bootstrapRunner(TaskNodeConfig config, TaskProcessorSelector selector, WebSocketClientHandler clientHandler) {
+            return new BootstrapRunner(config, selector, clientHandler);
         }
     }
     static class SocketHandlerConfiguration {
-        @Bean
-        HttpServerHandler serverHandler(TaskProcessorSelector selector) {
-            return new HttpServerHandler(selector);
-        }
         @Bean
         WebSocketClientHandler clientHandler(ControlService controlService, TaskNodeConfig config) throws Exception {
             return new WebSocketClientHandler(controlService, config);

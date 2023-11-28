@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.zeroxn.task</groupId>
+    <groupId>ink.go-task</groupId>
     <artifactId>go-task-client</artifactId>
     <version>1.0.0</version>
     <packaging>pom</packaging>
@@ -21,6 +21,7 @@
 
         <jdk.version>17</jdk.version>
         <encoding>UTF-8</encoding>
+
         <maven.compiler.source>${jdk.version}</maven.compiler.source>
         <maven.compiler.target>${jdk.version}</maven.compiler.target>
         <project.build.sourceEncoding>${encoding}</project.build.sourceEncoding>
@@ -31,7 +32,8 @@
         <logback.version>1.4.8</logback.version>
         <jackson.version>2.15.0</jackson.version>
         <junit.version>4.13.2</junit.version>
-        <maven-plugin.version>3.11.0</maven-plugin.version>
+        <maven-compiler.version>3.11.0</maven-compiler.version>
+        <maven-jar-plugin.version>3.2.0</maven-jar-plugin.version>
     </properties>
 
     <dependencyManagement>
@@ -88,4 +90,19 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven-compiler.version}</version>
+                <configuration>
+                    <source>${jdk.version}</source>
+                    <target>${jdk.version}</target>
+                    <encoding>${encoding}</encoding>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>

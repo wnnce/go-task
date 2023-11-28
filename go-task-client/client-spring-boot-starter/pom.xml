@@ -4,14 +4,14 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>com.zeroxn.task</groupId>
+        <groupId>ink.go-task</groupId>
         <artifactId>go-task-client</artifactId>
         <version>1.0.0</version>
     </parent>
 
-    <groupId>com.zeroxn.task.spring.starter</groupId>
     <artifactId>go-task-spring-boot-starter</artifactId>
     <version>${client-spring-boot-starter.version}</version>
+    <packaging>jar</packaging>
 
     <properties>
         <maven.compiler.source>${jdk.version}</maven.compiler.source>
@@ -20,9 +20,9 @@
     </properties>
     <dependencies>
         <dependency>
-            <groupId>com.zeroxn.task.core</groupId>
+            <groupId>ink.go-task</groupId>
             <artifactId>go-task-core</artifactId>
-            <version>${client-core.version}</version>
+            <version>1.0.0</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -39,17 +39,4 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>${maven-plugin.version}</version>
-                <configuration>
-                    <encoding>${encoding}</encoding>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
 </project>

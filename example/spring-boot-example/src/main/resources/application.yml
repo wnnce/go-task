@@ -1,0 +1,4 @@
+go-task:
+  address: localhost:5400
+  node-name: spring-test
+  intervals: 10
