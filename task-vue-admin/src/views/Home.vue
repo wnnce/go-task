@@ -3,6 +3,9 @@ import CardItem from '@/components/CardItem.vue';
 import type {TableColumnData} from '@arco-design/web-vue';
 import {useTaskNodeStore} from '@/stores/task_node';
 import {formatDateTime, formatSize} from '@/assets/script/utils';
+import {onMounted, onUnmounted, ref} from 'vue';
+import type {Count} from '@/server/api';
+import {TaskApi} from '@/server/api';
 
 const taskNodeStore = useTaskNodeStore();
 
@@ -41,6 +44,28 @@ const columns: TableColumnData[] = [
         slotName: 'status'
     }
 ]
+
+const countInfo = ref<Count>()
+const interval = ref();
+
+const getCountInfo = async () => {
+    const result = await TaskApi.queryCountInfo();
+    if (result.code === 200) {
+        countInfo.value = result.data;
+    }
+}
+
+onMounted(() => {
+    getCountInfo();
+    interval.value = setInterval( () => {
+        getCountInfo();
+    }, 5000)
+})
+onUnmounted(() => {
+    if (interval.value) {
+        clearInterval(interval.value)
+    }
+})
 </script>
 
 <template>
@@ -50,16 +75,16 @@ const columns: TableColumnData[] = [
         </div>
         <div class="flex mt-8">
             <div class="show-item mx-2">
-                <CardItem title="任务总数" value="2" color="#F7F7F7"/>
+                <CardItem title="任务总数" :value="countInfo ? countInfo.taskCount : 0" color="#F7F7F7"/>
             </div>
             <div class="show-item mx-2">
-                <CardItem title="当前运行实例数" value="2" color="#A2D8F4"/>
+                <CardItem title="当前运行实例" :value="countInfo ? countInfo.runnerNodeCount : 0" color="#A2D8F4"/>
             </div>
             <div class="show-item mx-2">
-                <CardItem title="近期失败任务数" value="2" color="#FF6347" text-color="white"/>
+                <CardItem title="近期失败任务" :value="countInfo ? countInfo.failTaskCount : 0" color="#FF6347" text-color="white"/>
             </div>
             <div class="show-item mx-2">
-                <CardItem title="实例在线数" :value="taskNodeStore.taskNodeOnlineCount.toString()" color="#a7f2a7"/>
+                <CardItem title="实例在线" :value="taskNodeStore.taskNodeOnlineCount" color="#a7f2a7"/>
             </div>
         </div>
         <div class="mt-8">

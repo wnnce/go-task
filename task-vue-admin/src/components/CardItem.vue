@@ -1,7 +1,7 @@
 <script setup lang="ts">
 interface CardProps {
     title: string,
-    value: string,
+    value: string | number,
     color?: string,
     textColor?: string,
 }
