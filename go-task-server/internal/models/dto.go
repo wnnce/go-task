@@ -40,3 +40,9 @@ type TaskExecuteResult struct {
 	RunnerLogs  string     `json:"runnerLogs"`  // 任务运行的日志记录
 	NodeDemo    string     `json:"nodeDemo"`    // 运行任务的任务节点名称
 }
+
+type CountInfo struct {
+	TaskCount       int `json:"taskCount" xorm:"task_count"`              // 任务总数
+	FailTaskCount   int `json:"failTaskCount" xorm:"fail_task_count"`     // 近期失败任务数
+	RunnerNodeCount int `json:"runnerNodeCount" xorm:"runner_node_count"` // 正在运行实例数
+}

@@ -1,0 +1,9 @@
+server:
+  port: 5400
+
+database:
+  host: 10.10.10.10
+  port: 5432
+  username: postgres
+  password: admin
+  dbname: task_server

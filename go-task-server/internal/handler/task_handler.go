@@ -117,3 +117,11 @@ func (t *TaskHandler) TaskReport(c *fiber.Ctx) error {
 	t.taskService.HandlerTaskResult(result)
 	return utils.Ok(c, nil)
 }
+
+func (t *TaskHandler) QueryCountInfo(c *fiber.Ctx) error {
+	count, err := t.taskService.QueryInfoCount()
+	if err != nil {
+		return utils.Fail(c, err)
+	}
+	return utils.Ok(c, count)
+}

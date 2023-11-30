@@ -62,6 +62,7 @@ func initTaskRoute(app *fiber.App, handler *handler.TaskHandler, wg *sync.WaitGr
 	taskApi.Put("/status", handler.UpdateTaskStatus)
 	taskApi.Post("/execute", handler.TaskExecuteSubmit)
 	taskApi.Post("/report", handler.TaskReport)
+	taskApi.Get("/count/info", handler.QueryCountInfo)
 }
 
 func initRecordRoute(app *fiber.App, handler *handler.RecordHandler, wg *sync.WaitGroup) {

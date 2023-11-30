@@ -14,6 +14,7 @@ type TaskRepository interface {
 	UpdateTask(task *models.Task) int64
 	DeleteTaskById(taskId int) int64
 	UpdateTaskStatus(taskId, status int) int64
+	QueryCountInfo() *models.CountInfo
 }
 
 type TaskRepositoryImpl struct {
@@ -124,4 +125,17 @@ func (t *TaskRepositoryImpl) handlerPageSession(session *xorm.Session, query *mo
 	if len(query.EndTime) > 0 {
 		session.And("create_time < ?", query.EndTime)
 	}
+}
+
+func (t *TaskRepositoryImpl) QueryCountInfo() *models.CountInfo {
+	count := &models.CountInfo{}
+	result, err := t.engine.SQL("select * from (select count(id) as task_count from xn_task_info) as t1, (select count(id) as fail_task_count from xn_task_record where status = 3) as r1, (select count(distinct execute_address) as runner_node_count from xn_task_record where status = 2) as r2").Get(count)
+	if err != nil {
+		log.Errorf("查询数据库失败，错误信息：%v\n", err)
+	}
+	if !result {
+		return nil
+	}
+	return count
+
 }

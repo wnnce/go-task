@@ -6,6 +6,7 @@ import (
 	"go-task-server/internal/utils"
 )
 
+// 不需要验证就可以访问的路径
 var openUris = []string{
 	"/user/login",
 	"/task/report",

@@ -16,6 +16,7 @@ type TaskService interface {
 	UpdateTaskStatus(taskId, status int) error
 	ExecuteTask(taskId, mode int, nodeId string) error
 	HandlerTaskResult(result *models.TaskExecuteResult)
+	QueryInfoCount() (*models.CountInfo, error)
 }
 
 type TaskServiceImpl struct {
@@ -131,4 +132,12 @@ func (t *TaskServiceImpl) HandlerTaskResult(result *models.TaskExecuteResult) {
 			log.Error("添加任务运行日志失败")
 		}
 	}
+}
+
+func (t *TaskServiceImpl) QueryInfoCount() (*models.CountInfo, error) {
+	count := t.taskRepo.QueryCountInfo()
+	if count == nil {
+		return nil, common.NewCustomError(500, "查询信息失败")
+	}
+	return count, nil
 }

@@ -10,6 +10,11 @@ export interface Page<T> {
     list: T[]
 }
 
+export interface Count {
+    taskCount: number,
+    failTaskCount: number,
+    runnerNodeCount: number
+}
 
 export interface User {
     id: number,
@@ -77,6 +82,9 @@ export class TaskApi {
     }
     static async queryTaskInfo(taskId: number) {
         return sendGet<Task>(`/task/${taskId}`);
+    }
+    static async queryCountInfo() {
+        return sendGet<Count>('/task/count/info')
     }
     static async updateTask(taskInfo: OptionalTask) {
         return sendPut("/task", undefined, taskInfo)
